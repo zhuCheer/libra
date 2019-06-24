@@ -17,10 +17,9 @@ import (
 
 // Proxy server node struct
 type ProxySrv struct {
-	ProxyAddr  string
-	ManageAddr string
-	Scheme     string
-	LoadType   string
+	ProxyAddr string
+	Scheme    string
+	LoadType  string
 }
 
 // Common errors.
@@ -31,11 +30,6 @@ var (
 
 // start http proxy server
 func (p *ProxySrv) Start() error {
-
-	go func() {
-		p.startManagerHttpSrv()
-	}()
-
 	proxyHttpMux := http.NewServeMux()
 	Logger.Printf("start proxy server bind " + p.ProxyAddr)
 	proxyHttpMux.Handle("/", p.dynamicReverseProxy())
@@ -50,9 +44,7 @@ func (p *ProxySrv) Start() error {
 
 // verify the ProxyAddr and ManageAddr
 func (p *ProxySrv) verifyAddr() error {
-	if p.ManageAddr == p.ProxyAddr {
-		errors.New("ProxyAddr can not the same of ManageAddr")
-	}
+
 	return nil
 }
 
@@ -68,19 +60,6 @@ func (p *ProxySrv) getBalancerRemote(domain string) (*balancer.ProxyTarget, erro
 	return b.GetOne(domain)
 }
 
-// start a manager http server
-func (p *ProxySrv) startManagerHttpSrv() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/notFoundPage", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("not found remote page"))
-	})
-	Logger.Printf("start manage http server bind addr:" + p.ManageAddr)
-	err := http.ListenAndServe(p.ManageAddr, mux)
-	if err != nil {
-		panic(err)
-	}
-}
-
 // get ReverseProxy dynamic director func
 // in this function proxy server knows where to forward to
 // if the target is a error node, proxy will forward to a default error page in local address.
@@ -91,10 +70,9 @@ func (p *ProxySrv) dynamicDirector(req *http.Request) {
 		target, err = url.Parse(p.Scheme + "://" + proxyTarget.Addr)
 	}
 
-	// if err not nil reverse proxy to a default error page
-	if err != nil || target == nil {
-		req.URL.Host = p.ManageAddr
-		req.URL.Path = "/notFoundPage"
+	// if err not nil panic the error
+	if err != nil {
+		panic(err)
 	} else {
 		targetQuery := target.RawQuery
 		req.URL.Host = target.Host
