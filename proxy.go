@@ -17,17 +17,30 @@ import (
 
 // Proxy server node struct
 type ProxySrv struct {
-	ProxyAddr string
-	LoadType  string
-	Scheme    string
-	balancer  balancer.Balancer
+	ProxyAddr    string
+	LoadType     string
+	Scheme       string
+	customHeader map[string]string
+	balancer     balancer.Balancer
 }
 
 // Common errors.
 var (
 	Logger      = logger.NoopLogger{}
 	errorHeader = "x-libra-err"
+	version     = "v0.0.1"
+	githubUrl   = "https://github.com/zhuCheer/libra"
 )
+
+// new http reverse proxy
+func NewHttpProxySrv(addr string, loadType string, header map[string]string) *ProxySrv {
+	return &ProxySrv{
+		ProxyAddr:    addr,
+		LoadType:     loadType,
+		Scheme:       "http",
+		customHeader: header,
+	}
+}
 
 // start http proxy server
 func (p *ProxySrv) Start() error {
@@ -37,7 +50,7 @@ func (p *ProxySrv) Start() error {
 
 	proxyHttpMux := http.NewServeMux()
 	Logger.Printf("start proxy server bind " + p.ProxyAddr)
-	proxyHttpMux.Handle("/", p.dynamicReverseProxy())
+	proxyHttpMux.Handle("/", p.httpMiddleware(p.dynamicReverseProxy()))
 
 	proxyServer := &http.Server{
 		Addr:    p.ProxyAddr,
@@ -69,6 +82,18 @@ func (p *ProxySrv) getBalancerRemote(domain string) (*balancer.ProxyTarget, erro
 	p.balancer = b
 
 	return b.GetOne(domain)
+}
+
+// http middleware set some header
+func (p *ProxySrv) httpMiddleware(handler *httputil.ReverseProxy) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for key, value := range p.customHeader {
+			w.Header().Add(key, value)
+		}
+		w.Header().Set("X-LIBRA-VERSION", version)
+		w.Header().Set("X-LIBRA-CODE", githubUrl)
+		handler.ServeHTTP(w, r)
+	})
 }
 
 // get ReverseProxy dynamic director func
@@ -150,9 +175,9 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	if resp.StatusCode > 400 {
 		return getDefaultErrorPage(resp.StatusCode, "have an error", req)
 	}
-
 	remoteBody, _ := ioutil.ReadAll(resp.Body)
 	resp.Body = ioutil.NopCloser(bytes.NewReader(remoteBody))
+
 	return resp, nil
 }
 

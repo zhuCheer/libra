@@ -34,9 +34,8 @@ type OriginItem struct {
 // register a proxy node
 type RegistNode struct {
 	//Name         string
-	Domain       string
-	Items        []OriginItem
-	CustomHeader []string
+	Domain string
+	Items  []OriginItem
 }
 
 // proxy target node
@@ -62,7 +61,7 @@ func NewTarget(node RegistNode) error {
 }
 
 // register a target server node target ip list is empty
-func RegistTargetNoAddr(domain string, header []string) {
+func RegistTargetNoAddr(domain string) {
 	lock.Lock()
 	defer lock.Unlock()
 	if _, ok := registryMap[domain]; !ok {
@@ -71,9 +70,8 @@ func RegistTargetNoAddr(domain string, header []string) {
 		}
 
 		registryMap[domain] = RegistNode{
-			Domain:       domain,
-			Items:        []OriginItem{},
-			CustomHeader: header,
+			Domain: domain,
+			Items:  []OriginItem{},
 		}
 	}
 }

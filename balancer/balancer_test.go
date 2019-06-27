@@ -64,9 +64,9 @@ func TestGetTarget(t *testing.T) {
 
 func TestRegistTarget(t *testing.T) {
 
-	RegistTargetNoAddr("www.google.com", []string{})
+	RegistTargetNoAddr("www.google.com")
 
-	RegistTargetNoAddr("www.google.com", []string{})
+	RegistTargetNoAddr("www.google.com")
 
 	if registryMap == nil || len(registryMap) > 1 {
 		t.Error("RegistTarget func have an error")
@@ -75,7 +75,7 @@ func TestRegistTarget(t *testing.T) {
 
 func TestAddEndpoint(t *testing.T) {
 	registryMap = nil
-	RegistTargetNoAddr("www.google.com", []string{})
+	RegistTargetNoAddr("www.google.com")
 	err := addEndpoint("www.facebook.com", OriginItem{"192.168.1.1:80", 10})
 	if err == nil {
 		t.Error("AddEndpoint func have an error #1")
@@ -106,7 +106,7 @@ func TestAddEndpoint(t *testing.T) {
 func TestAddAddrWithoutWeight(t *testing.T) {
 	registryMap = nil
 	domain := "www.google.com"
-	RegistTargetNoAddr(domain, []string{})
+	RegistTargetNoAddr(domain)
 
 	err := AddAddrWithoutWeight("www.facebook.com", "192.168.1.1:80")
 	if err == nil {
@@ -132,7 +132,7 @@ func TestAddAddrWithoutWeight(t *testing.T) {
 func TestAddAddrWithWeight(t *testing.T) {
 	registryMap = nil
 	domain := "www.google.com"
-	RegistTargetNoAddr(domain, []string{})
+	RegistTargetNoAddr(domain)
 	err := AddAddrWithWeight(domain, "192.168.1.100:80", 80)
 	if err != nil {
 		t.Error("AddAddrWithWeight func have an error #1")
@@ -145,7 +145,7 @@ func TestAddAddrWithWeight(t *testing.T) {
 
 func TestDelEndpoint(t *testing.T) {
 	registryMap = nil
-	RegistTargetNoAddr("www.google.com", []string{})
+	RegistTargetNoAddr("www.google.com")
 	addEndpoint("www.google.com", []OriginItem{{"192.168.1.101:80", 10}, {"192.168.1.102:80", 10}}...)
 	DelEndpoint("www.google.com", "192.168.1.101:80")
 	DelEndpoint("www.google.com", "192.168.1.101:80")
@@ -175,9 +175,9 @@ func TestDelEndpoint(t *testing.T) {
 
 func TestFlushProxy(t *testing.T) {
 	registryMap = nil
-	RegistTargetNoAddr("www.google.com", []string{})
-	RegistTargetNoAddr("www.google1.com", []string{})
-	RegistTargetNoAddr("www.google2.com", []string{})
+	RegistTargetNoAddr("www.google.com")
+	RegistTargetNoAddr("www.google1.com")
+	RegistTargetNoAddr("www.google2.com")
 
 	addEndpoint("www.google.com", []OriginItem{{"192.168.1.101:80", 10}, {"192.168.1.102:80", 10}}...)
 	addEndpoint("www.google2.com", []OriginItem{{"192.168.1.101:80", 10}, {"192.168.1.102:80", 10}}...)
@@ -200,7 +200,7 @@ func TestFlushProxy(t *testing.T) {
 
 func TestRegistryMapLog(t *testing.T) {
 	registryMap = nil
-	RegistTargetNoAddr("www.google.com", []string{})
+	RegistTargetNoAddr("www.google.com")
 
 	wg := sync.WaitGroup{}
 	wg.Add(100)
