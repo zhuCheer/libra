@@ -62,7 +62,7 @@ func NewTarget(node RegistNode) error {
 }
 
 // register a target server node target ip list is empty
-func RegistTarget(domain string, header []string) {
+func RegistTargetNoAddr(domain string, header []string) {
 	lock.Lock()
 	defer lock.Unlock()
 	if _, ok := registryMap[domain]; !ok {
@@ -92,7 +92,7 @@ func GetTarget(domain string) (*RegistNode, error) {
 }
 
 // AddEndpointWithoutWeight is a add endpoint function without weight
-// actually the weight used of default value zero
+// actually the weight used of default value one
 func AddAddrWithoutWeight(domain string, addrs ...string) error {
 
 	endpoints := make([]OriginItem, 0)
@@ -100,7 +100,7 @@ func AddAddrWithoutWeight(domain string, addrs ...string) error {
 
 		endpoints = append(endpoints, OriginItem{
 			Endpoint: item,
-			Weight:   0,
+			Weight:   1,
 		})
 	}
 	return addEndpoint(domain, endpoints...)

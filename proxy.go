@@ -3,7 +3,6 @@ package libra
 import (
 	"bytes"
 	"context"
-	"errors"
 	"github.com/zhuCheer/libra/balancer"
 	"github.com/zhuCheer/libra/logger"
 	"io/ioutil"
@@ -20,12 +19,12 @@ type ProxySrv struct {
 	ProxyAddr string
 	Scheme    string
 	LoadType  string
+	balancer  balancer.Balancer
 }
 
 // Common errors.
 var (
-	ErrNotRegistTarget = errors.New("you should regist target server first")
-	Logger             = logger.NoopLogger{}
+	Logger = logger.NoopLogger{}
 )
 
 // start http proxy server
@@ -50,12 +49,18 @@ func (p *ProxySrv) verifyAddr() error {
 
 // get a balancer
 func (p *ProxySrv) getBalancerRemote(domain string) (*balancer.ProxyTarget, error) {
-	b := balancer.NewRandomLoad()
+	if p.balancer != nil {
+		return p.balancer.GetOne(domain)
+	}
 
+	b := balancer.NewRandomLoad()
 	switch p.LoadType {
 	case "random":
 		b = balancer.NewRandomLoad()
+	case "roundrobin":
+		b = balancer.NewRoundRobinLoad()
 	}
+	p.balancer = b
 
 	return b.GetOne(domain)
 }
