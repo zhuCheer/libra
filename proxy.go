@@ -3,6 +3,7 @@ package libra
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"github.com/zhuCheer/libra/balancer"
 	"github.com/zhuCheer/libra/logger"
 	"io/ioutil"
@@ -17,18 +18,23 @@ import (
 // Proxy server node struct
 type ProxySrv struct {
 	ProxyAddr string
-	Scheme    string
 	LoadType  string
+	Scheme    string
 	balancer  balancer.Balancer
 }
 
 // Common errors.
 var (
-	Logger = logger.NoopLogger{}
+	Logger      = logger.NoopLogger{}
+	errorHeader = "x-libra-err"
 )
 
 // start http proxy server
 func (p *ProxySrv) Start() error {
+	if p.Scheme == "" {
+		p.Scheme = "http"
+	}
+
 	proxyHttpMux := http.NewServeMux()
 	Logger.Printf("start proxy server bind " + p.ProxyAddr)
 	proxyHttpMux.Handle("/", p.dynamicReverseProxy())
@@ -75,9 +81,9 @@ func (p *ProxySrv) dynamicDirector(req *http.Request) {
 		target, err = url.Parse(p.Scheme + "://" + proxyTarget.Addr)
 	}
 
-	// if err not nil panic the error
+	// if err not nil wirte an err in header
 	if err != nil {
-		panic(err)
+		req.Header.Set(errorHeader, err.Error())
 	} else {
 		targetQuery := target.RawQuery
 		req.URL.Host = target.Host
@@ -94,6 +100,7 @@ func (p *ProxySrv) dynamicDirector(req *http.Request) {
 		}
 	}
 	req.URL.Scheme = p.Scheme
+	Logger.Printf("proxy to " + req.URL.String())
 }
 
 // get ReverseProxy Http Handler
@@ -112,6 +119,7 @@ func (p *ProxySrv) dynamicReverseProxy() *httputil.ReverseProxy {
 		IdleConnTimeout:       10 * time.Second,
 		ResponseHeaderTimeout: 30 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 		ExpectContinueTimeout: 1 * time.Second,
 	}
 	transport := &transport{RoundTripper: roundTripper}
@@ -129,6 +137,11 @@ type transport struct {
 }
 
 func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	proxyErrHeader := req.Header.Get(errorHeader)
+	if proxyErrHeader != "" {
+		return getDefaultErrorPage(500, proxyErrHeader, req)
+	}
+
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
 		return getDefaultErrorPage(502, err.Error(), req)
