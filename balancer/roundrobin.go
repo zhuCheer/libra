@@ -29,3 +29,15 @@ func (r *RoundRobinLoad) GetOne(domain string) (*ProxyTarget, error) {
 
 	return target, nil
 }
+
+func (r *RoundRobinLoad) AddAddr(domain string, addr string, weight uint32) error {
+	endpoint := OriginItem{
+		Endpoint: addr,
+		Weight:   weight,
+	}
+	return addEndpoint(domain, endpoint)
+}
+
+func (r *RoundRobinLoad) DelAddr(domain string, addr string) error {
+	return delEndpoint(domain, addr)
+}

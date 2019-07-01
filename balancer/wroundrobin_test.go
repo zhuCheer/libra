@@ -1,0 +1,158 @@
+package balancer
+
+import (
+	"testing"
+)
+
+func TestWRoudRobinLoad(t *testing.T) {
+
+	var balancer = NewWRoundRobinLoad()
+	domain := "www.google.com"
+	registryMap = nil
+	NewTarget(RegistNode{
+		Domain: domain,
+		Items: []OriginItem{
+			{"192.168.1.100", 80},
+			{"192.168.1.101", 40},
+		},
+	})
+	balancer.AddAddr(domain, "192.168.1.102", 40)
+
+	v1 := 0
+	v2 := 0
+	v3 := 0
+	// loop times at 30
+	for i := 0; i < 60; i++ {
+		target, _ := balancer.GetOne(domain)
+
+		if target.Addr == "192.168.1.100" {
+			v1++
+		}
+		if target.Addr == "192.168.1.101" {
+			v2++
+		}
+		if target.Addr == "192.168.1.102" {
+			v3++
+		}
+	}
+	if v1 != 30 || v2 != 15 || v3 != 15 {
+		t.Error("WRoundRobin GetOne have an error")
+	}
+}
+
+func TestAddAddrWRoundRobin(t *testing.T) {
+	var balancer = NewWRoundRobinLoad()
+	domain := "www.google.com"
+	registryMap = nil
+	NewTarget(RegistNode{
+		Domain: domain,
+		Items: []OriginItem{
+			{"192.168.1.100", 80},
+		},
+	})
+	if len(registryMap[domain].Items) != 1 {
+		t.Error("AddAddr func have an error #1")
+	}
+
+	balancer.AddAddr(domain, "192.168.1.101", 40)
+	balancer.AddAddr(domain, "192.168.1.102", 40)
+
+	if len(registryMap[domain].Items) != 3 {
+		t.Error("AddAddr func have an error #2")
+	}
+}
+
+func TestDelAddrWRoundRobin(t *testing.T) {
+	var balancer = NewWRoundRobinLoad()
+	domain := "www.google.com"
+	registryMap = nil
+	NewTarget(RegistNode{
+		Domain: domain,
+		Items: []OriginItem{
+			{"192.168.1.100", 80},
+			{"192.168.1.101", 80},
+			{"192.168.1.102", 80},
+		},
+	})
+
+	balancer.DelAddr(domain, "192.168.1.101")
+
+	if len(registryMap[domain].Items) != 2 {
+		t.Error("DelAddr func have an error #1")
+	}
+}
+
+func TestGetMaxWeightIndex(t *testing.T) {
+	items := []OriginItem{}
+	_, err := getMaxWeight(items)
+	if err == nil {
+		t.Error("getMaxWeightIndex func have an error #1")
+	}
+
+	items = []OriginItem{
+		{"192.168.137.100", 80},
+		{"192.168.137.100", 130},
+		{"192.168.137.100", 40},
+		{"192.168.137.100", 20},
+	}
+	max2, err := getMaxWeight(items)
+
+	if max2 != 130 {
+		t.Error("getMaxWeightIndex func have an error #2")
+	}
+}
+
+func TestGetGCDWeight(t *testing.T) {
+	items := []OriginItem{}
+	_, err := getMaxWeight(items)
+	if err == nil {
+		t.Error("getGCDWeight func have an error #1")
+	}
+
+	items = []OriginItem{
+		{"192.168.137.100", 80},
+		{"192.168.137.100", 130},
+		{"192.168.137.100", 40},
+		{"192.168.137.100", 20},
+	}
+	gcdWeight, _ := getGCDWeight(items)
+	if gcdWeight != 10 {
+		t.Error("getGCDWeight func have an error #2")
+	}
+
+	items = []OriginItem{
+		{"192.168.137.100", 244200},
+		{"192.168.137.100", 111},
+		{"192.168.137.100", 888},
+	}
+
+	gcdWeight, _ = getGCDWeight(items)
+	if gcdWeight != 111 {
+		t.Error("getGCDWeight func have an error #3")
+	}
+
+}
+
+func TestGcd(t *testing.T) {
+	r1 := gcd(0, 0)
+	if r1 != 0 {
+		t.Error("the gcd func have an error #1")
+	}
+
+	r2 := gcd(244200, 888)
+
+	if r2 != 888 {
+		t.Error("the gcd func have an error #2")
+	}
+
+	r3 := gcd(11, 244200)
+	if r3 != 11 {
+		t.Error("the gcd func have an error #3")
+	}
+
+	r4 := gcd(1800, 90)
+	if r4 != 90 {
+		t.Error("the gcd func have an error #4")
+	}
+
+}

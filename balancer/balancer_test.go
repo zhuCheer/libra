@@ -13,6 +13,16 @@ func (b *testBalancer) GetOne(host string) (target *ProxyTarget, err error) {
 	return &ProxyTarget{"www.google.com", "192.168.1.100:8080"}, nil
 }
 
+func (b *testBalancer) AddAddr(domain string, addr string, weight uint32) error {
+
+	return nil
+}
+
+func (b *testBalancer) DelAddr(domain string, addr string) error {
+
+	return nil
+}
+
 func TestBalancerInterface(t *testing.T) {
 	var _ Balancer = (*testBalancer)(nil)
 
@@ -147,15 +157,15 @@ func TestDelEndpoint(t *testing.T) {
 	registryMap = nil
 	RegistTargetNoAddr("www.google.com")
 	addEndpoint("www.google.com", []OriginItem{{"192.168.1.101:80", 10}, {"192.168.1.102:80", 10}}...)
-	DelEndpoint("www.google.com", "192.168.1.101:80")
-	DelEndpoint("www.google.com", "192.168.1.101:80")
-	DelEndpoint("www.google.com", "192.168.1.105:80")
+	delEndpoint("www.google.com", "192.168.1.101:80")
+	delEndpoint("www.google.com", "192.168.1.101:80")
+	delEndpoint("www.google.com", "192.168.1.105:80")
 	if registryMap["www.google.com"].Items[0].Endpoint != "192.168.1.102:80" ||
 		len(registryMap["www.google.com"].Items) != 1 {
 		t.Error("DelEndpoint func have an error #1")
 	}
 
-	DelEndpoint("www.google.com", "192.168.1.102:80")
+	delEndpoint("www.google.com", "192.168.1.102:80")
 	if len(registryMap["www.google.com"].Items) != 0 {
 		t.Error("DelEndpoint func have an error #2")
 	}
@@ -167,7 +177,7 @@ func TestDelEndpoint(t *testing.T) {
 		{"192.168.1.104:80", 10},
 	}...)
 
-	DelEndpoint("www.google.com", "192.168.1.102:80")
+	delEndpoint("www.google.com", "192.168.1.102:80")
 	if len(registryMap["www.google.com"].Items) != 3 {
 		t.Error("DelEndpoint func have an error #3")
 	}

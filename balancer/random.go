@@ -27,3 +27,15 @@ func (r *RandomLoad) GetOne(domain string) (*ProxyTarget, error) {
 
 	return &ProxyTarget{targetSrv.Domain, targetSrv.Items[randCode].Endpoint}, nil
 }
+
+func (r *RandomLoad) AddAddr(domain string, addr string, weight uint32) error {
+	endpoint := OriginItem{
+		Endpoint: addr,
+		Weight:   weight,
+	}
+	return addEndpoint(domain, endpoint)
+}
+
+func (r *RandomLoad) DelAddr(domain string, addr string) error {
+	return delEndpoint(domain, addr)
+}

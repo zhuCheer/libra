@@ -55,3 +55,45 @@ func TestRoudRobinLoad(t *testing.T) {
 	}
 
 }
+
+func TestAddAddrRoundRobin(t *testing.T) {
+	var balancer = NewRoundRobinLoad()
+	domain := "www.google.com"
+	registryMap = nil
+	NewTarget(RegistNode{
+		Domain: domain,
+		Items: []OriginItem{
+			{"192.168.1.100", 80},
+		},
+	})
+	if len(registryMap[domain].Items) != 1 {
+		t.Error("AddAddr func have an error #1")
+	}
+
+	balancer.AddAddr(domain, "192.168.1.101", 0)
+	balancer.AddAddr(domain, "192.168.1.102", 0)
+
+	if len(registryMap[domain].Items) != 3 {
+		t.Error("AddAddr func have an error #2")
+	}
+}
+
+func TestDelAddrRoundRobin(t *testing.T) {
+	var balancer = NewRoundRobinLoad()
+	domain := "www.google.com"
+	registryMap = nil
+	NewTarget(RegistNode{
+		Domain: domain,
+		Items: []OriginItem{
+			{"192.168.1.100", 80},
+			{"192.168.1.101", 80},
+			{"192.168.1.102", 80},
+		},
+	})
+
+	balancer.DelAddr(domain, "192.168.1.101")
+
+	if len(registryMap[domain].Items) != 2 {
+		t.Error("DelAddr func have an error #1")
+	}
+}

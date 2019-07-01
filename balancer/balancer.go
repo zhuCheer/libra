@@ -8,7 +8,9 @@ import (
 // Balancer is an interface used to lookup the target host
 // Interfaces can be implemented using different algorithms, loop/round robin or others
 type Balancer interface {
-	GetOne(domain string) (*ProxyTarget, error) // Return the endpoint by different algorithms
+	AddAddr(domain string, addr string, weight uint32) error //add target addr
+	DelAddr(domain string, addr string) error                // del target addr
+	GetOne(domain string) (*ProxyTarget, error)              // Return the endpoint by different algorithms
 }
 
 // Common errors.
@@ -135,7 +137,7 @@ func addEndpoint(domain string, endpoints ...OriginItem) error {
 }
 
 // remove an endpoint
-func DelEndpoint(domain string, addr string) error {
+func delEndpoint(domain string, addr string) error {
 	lock.Lock()
 	defer lock.Unlock()
 
