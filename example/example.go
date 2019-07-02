@@ -5,18 +5,17 @@ import (
 	"net/http"
 )
 
-func main(){
+func main() {
 	go httpsrv01()
 	go httpsrv02()
 	var srv = libra.NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
 	srv.GetBalancer().AddAddr("127.0.0.1:5000", "127.0.0.1:5001", 1)
 	srv.GetBalancer().AddAddr("127.0.0.1:5000", "127.0.0.1:5002", 1)
-	srv.Scheme="http"
+	srv.Scheme = "http"
 	srv.Start()
 }
 
-
-func httpsrv01(){
+func httpsrv01() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +25,7 @@ func httpsrv01(){
 	http.ListenAndServe(":5001", mux)
 }
 
-func httpsrv02(){
+func httpsrv02() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

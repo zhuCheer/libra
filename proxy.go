@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// Proxy server node struct
+// ProxySrv Proxy server node struct
 type ProxySrv struct {
 	ProxyAddr    string
 	Scheme       string
@@ -24,7 +24,7 @@ type ProxySrv struct {
 	balancer     balancer.Balancer
 }
 
-// Common errors.
+// Common variable.
 var (
 	Logger      = logger.NoopLogger{}
 	errorHeader = "x-libra-err"
@@ -32,7 +32,7 @@ var (
 	githubUrl   = "https://github.com/zhuCheer/libra"
 )
 
-// new http reverse proxy
+// NewHttpProxySrv new http reverse proxy
 func NewHttpProxySrv(addr string, loadType string, header map[string]string) *ProxySrv {
 	if header == nil {
 		header = map[string]string{}
@@ -47,7 +47,7 @@ func NewHttpProxySrv(addr string, loadType string, header map[string]string) *Pr
 	}
 }
 
-// start http proxy server
+// Start http proxy server
 func (p *ProxySrv) Start() error {
 	if p.Scheme == "" {
 		p.Scheme = "http"
@@ -65,25 +65,25 @@ func (p *ProxySrv) Start() error {
 	panic(err)
 }
 
-// get balancer
+// GetBalancer
 func (p *ProxySrv) GetBalancer() balancer.Balancer {
 
 	return p.balancer
 }
 
-// change balancer loadType
+// ChangeLoadType change balancer loadType
 func (p *ProxySrv) ChangeLoadType(loadType string) {
 	b := getBalancerByLoadType(loadType)
 	p.balancer = b
 }
 
-// reset custom header
+// ResetCustomHeader reset custom header
 func (p *ProxySrv) ResetCustomHeader(header map[string]string) {
 	p.customHeader = map[string]string{}
 	p.customHeader = header
 }
 
-// get balancer by lodeType
+// getBalancerByLoadType get balancer by lodeType
 func getBalancerByLoadType(loadType string) balancer.Balancer {
 	b := balancer.NewRandomLoad()
 	switch loadType {
@@ -98,7 +98,7 @@ func getBalancerByLoadType(loadType string) balancer.Balancer {
 	return b
 }
 
-// http middleware set some header
+// httpMiddleware http middleware set some header
 func (p *ProxySrv) httpMiddleware(handler *httputil.ReverseProxy) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for key, value := range p.customHeader {
@@ -110,7 +110,7 @@ func (p *ProxySrv) httpMiddleware(handler *httputil.ReverseProxy) http.Handler {
 	})
 }
 
-// get ReverseProxy dynamic director func
+// dynamicDirector get ReverseProxy dynamic director func
 // in this function proxy server knows where to forward to
 // if the target is a error node, proxy will forward to a default error page in local address.
 func (p *ProxySrv) dynamicDirector(req *http.Request) {
@@ -128,7 +128,6 @@ func (p *ProxySrv) dynamicDirector(req *http.Request) {
 		//req.Host = target.Host
 		req.URL.Host = target.Host
 		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
-
 
 		if targetQuery == "" || req.URL.RawQuery == "" {
 			req.URL.RawQuery = targetQuery + req.URL.RawQuery
@@ -177,6 +176,7 @@ type transport struct {
 	http.RoundTripper
 }
 
+// RoundTrip http transport
 func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	proxyErrHeader := req.Header.Get(errorHeader)
 	if proxyErrHeader != "" {

@@ -5,16 +5,17 @@ import (
 	"math/rand"
 )
 
-// Load Balancers By Random
+// RandomLoad Load Balancers By Random
 // you will get an random origin address
 type RandomLoad struct{}
 
-// get a RandomLoad point
+// NewRandomLoad get a RandomLoad point
 func NewRandomLoad() Balancer {
 
 	return &RandomLoad{}
 }
 
+// GetOne get an target by random
 func (r *RandomLoad) GetOne(domain string) (*ProxyTarget, error) {
 	targetSrv, err := GetTarget(domain)
 	if err != nil {
@@ -28,6 +29,7 @@ func (r *RandomLoad) GetOne(domain string) (*ProxyTarget, error) {
 	return &ProxyTarget{targetSrv.Domain, targetSrv.Items[randCode].Endpoint}, nil
 }
 
+// AddAddr add an endpoint
 func (r *RandomLoad) AddAddr(domain string, addr string, weight uint32) error {
 	endpoint := OriginItem{
 		Endpoint: addr,
@@ -36,6 +38,7 @@ func (r *RandomLoad) AddAddr(domain string, addr string, weight uint32) error {
 	return addEndpoint(domain, endpoint)
 }
 
+// DelAddr delete an endpoint
 func (r *RandomLoad) DelAddr(domain string, addr string) error {
 	return delEndpoint(domain, addr)
 }

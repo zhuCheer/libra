@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func TestProxyStart(t *testing.T){
+func TestProxyStart(t *testing.T) {
 	proxy := NewHttpProxySrv("127.0.0.1:5001", "roundrobin", nil)
 
 	go func() {
@@ -23,7 +23,7 @@ func TestProxyStart(t *testing.T){
 		proxy.Start()
 	}()
 
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 }
 
 func TestProxySrvFun(t *testing.T) {

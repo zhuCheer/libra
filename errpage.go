@@ -10,6 +10,7 @@ import (
 )
 
 var (
+	// ErrDefaultPage common error page template
 	ErrDefaultPage = `
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html>
@@ -37,7 +38,7 @@ Thank you very much!</p>
 `
 )
 
-// proxy not found page
+// getDefaultErrorPage proxy not found page
 func getDefaultErrorPage(statusCode int, msg string, req *http.Request) (resp *http.Response, err error) {
 	errPageTemplate := ErrDefaultPage
 
@@ -54,6 +55,7 @@ func getDefaultErrorPage(statusCode int, msg string, req *http.Request) (resp *h
 	return resp, err
 }
 
+// getResponsePage get response page return http response
 func getResponsePage(status int, msg string, req *http.Request) *http.Response {
 	var resp *http.Response
 

@@ -2,6 +2,7 @@ package logger
 
 import "log"
 
+// logger interface should have Printf func
 type Logger interface {
 	Printf(format string, items ...interface{})
 }

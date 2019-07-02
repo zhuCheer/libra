@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-// this is a round robin by weight balancer
+// WRoundRobinLoad this is a round robin by weight balancer
 // weighted round robin struct
 type WRoundRobinLoad struct {
 	activeIndex  int
@@ -12,11 +12,12 @@ type WRoundRobinLoad struct {
 	activeItems  []OriginItem
 }
 
-// get a WRoundRobin point
+// NewWRoundRobinLoad get a WRoundRobin point
 func NewWRoundRobinLoad() Balancer {
 	return &WRoundRobinLoad{0, 0, []OriginItem{}}
 }
 
+// GetOne get an target by round robin with weight
 func (r *WRoundRobinLoad) GetOne(domain string) (*ProxyTarget, error) {
 	targetSrv, err := GetTarget(domain)
 	if err != nil {
@@ -62,6 +63,7 @@ func (r *WRoundRobinLoad) GetOne(domain string) (*ProxyTarget, error) {
 	return target, nil
 }
 
+// AddAddr add an endpoint
 func (r *WRoundRobinLoad) AddAddr(domain string, addr string, weight uint32) error {
 	endpoint := OriginItem{
 		Endpoint: addr,
@@ -80,6 +82,7 @@ func (r *WRoundRobinLoad) AddAddr(domain string, addr string, weight uint32) err
 	return err
 }
 
+// DelAddr delete an endpoint
 func (r *WRoundRobinLoad) DelAddr(domain string, addr string) error {
 	err := delEndpoint(domain, addr)
 	if err != nil {
@@ -93,7 +96,7 @@ func (r *WRoundRobinLoad) DelAddr(domain string, addr string) error {
 	return err
 }
 
-// reload active weight
+// reloadActiveItems reload active weight
 // when edit items,should run this func
 func (r *WRoundRobinLoad) reloadActiveItems(domain string) error {
 	target, err := GetTarget(domain)
@@ -124,7 +127,7 @@ func (r *WRoundRobinLoad) reloadActiveItems(domain string) error {
 	return nil
 }
 
-// get max weight origin item
+// getMaxWeight get max weight origin item
 func getMaxWeight(items []OriginItem) (uint32, error) {
 	activeItem := OriginItem{}
 	if len(items) == 0 {
@@ -140,7 +143,7 @@ func getMaxWeight(items []OriginItem) (uint32, error) {
 	return activeItem.Weight, nil
 }
 
-// Greatest Common Divisor By weight item
+// getGCDWeight Greatest Common Divisor By weight item
 func getGCDWeight(items []OriginItem) (uint32, error) {
 	if len(items) == 0 {
 		return 0, errors.New("origin items is empty")
@@ -158,7 +161,7 @@ func getGCDWeight(items []OriginItem) (uint32, error) {
 	return gcdWeight, nil
 }
 
-// Greatest Common Divisor  of two Numbers
+// gcd Greatest Common Divisor  of two Numbers
 // this is called Euclidean algorithm
 func gcd(m, n uint32) uint32 {
 	if m < n {

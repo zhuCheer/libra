@@ -27,26 +27,26 @@ var lock sync.RWMutex
 // global registry proxy data
 var registryMap map[string]RegistNode
 
-// origin list item
+// OriginItem struct addr and weight
 type OriginItem struct {
 	Endpoint string // ip:port
 	Weight   uint32
 }
 
-// register a proxy node
+// RegistNode register a proxy node struct
 type RegistNode struct {
 	//Name         string
 	Domain string
 	Items  []OriginItem
 }
 
-// proxy target node
+// ProxyTarget proxy target node struct
 type ProxyTarget struct {
 	Domain string
 	Addr   string
 }
 
-// New Target server is register a node
+// NewTarget New Target server is register a node
 func NewTarget(node RegistNode) error {
 	lock.Lock()
 	defer lock.Unlock()
@@ -57,12 +57,11 @@ func NewTarget(node RegistNode) error {
 
 		registryMap[node.Domain] = node
 		return nil
-	} else {
-		return ErrServiceExisted
 	}
+	return ErrServiceExisted
 }
 
-// register a target server node target ip list is empty
+// RegistTargetNoAddr register a target server node target ip list is empty
 func RegistTargetNoAddr(domain string) {
 	lock.Lock()
 	defer lock.Unlock()
@@ -78,7 +77,7 @@ func RegistTargetNoAddr(domain string) {
 	}
 }
 
-// get a Target server
+// GetTarget get a Target server
 func GetTarget(domain string) (*RegistNode, error) {
 	lock.RLock()
 	node, ok := registryMap[domain]
@@ -91,14 +90,14 @@ func GetTarget(domain string) (*RegistNode, error) {
 	return &node, nil
 }
 
-// flush an proxy server
+// FlushProxy flush an proxy server
 func FlushProxy(domain string) {
 	lock.Lock()
 	defer lock.Unlock()
 	delete(registryMap, domain)
 }
 
-// add an endpoint
+// addEndpoint add an endpoint
 func addEndpoint(domain string, endpoints ...OriginItem) error {
 	lock.Lock()
 	defer lock.Unlock()
@@ -127,7 +126,7 @@ func addEndpoint(domain string, endpoints ...OriginItem) error {
 	return nil
 }
 
-// remove an endpoint
+// delEndpoint remove an endpoint
 func delEndpoint(domain string, addr string) error {
 	lock.Lock()
 	defer lock.Unlock()
@@ -147,7 +146,7 @@ func delEndpoint(domain string, addr string) error {
 	return nil
 }
 
-// check endpoint is existed
+// stringInOriginItem check endpoint is existed
 func stringInOriginItem(needle string, haystack []OriginItem) bool {
 	result := false
 	for _, item := range haystack {
