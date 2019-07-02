@@ -1,12 +1,14 @@
 # libra 一个动态的反向代理均衡器
 
+[English document](https://github.com/zhuCheer/libra/blob/master/README.md)， [中文文档](https://github.com/zhuCheer/libra/blob/master/README_CN.md)
+
 ## 相关特性
 - 动态进行多地址反向代理
 - 动态管理源站地址
 - 支持动态修改定响应头
 - 代码都有严格的单元测试，可靠度高
 
-
+你可以通过此包来快速构建一个动态的负载均衡服务器，目前有三种负载均衡算法，分别是随机，轮询，带权轮询；此包皆由原生代码构建，不依赖其他第三方包；如果你想快速的获得一个负载均衡服务器，快来使用它吧。
 
 
 ## 快速开始
