@@ -149,7 +149,7 @@ func getGCDWeight(items []OriginItem) (uint32, error) {
 		return 0, errors.New("origin items is empty")
 	}
 
-	var gcdWeight uint32 = 0
+	var gcdWeight uint32
 	for i := 1; i < len(items); i++ {
 		if i == 1 {
 			gcdWeight = gcd(items[0].Weight, items[i].Weight)

@@ -116,8 +116,12 @@ func TestGetMaxWeightIndex(t *testing.T) {
 	}
 	max2, err := getMaxWeight(items)
 
-	if max2 != 130 {
+	if err != nil {
 		t.Error("getMaxWeightIndex func have an error #2")
+	}
+
+	if max2 != 130 {
+		t.Error("getMaxWeightIndex func have an error #3")
 	}
 }
 

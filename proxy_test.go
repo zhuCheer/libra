@@ -87,6 +87,10 @@ func TestReverseProxySrv(t *testing.T) {
 	}
 	greeting, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
+
+	if err != nil {
+		t.Error(err)
+	}
 	if string(greeting) != "testing ReverseProxySrv" {
 		t.Error("ReverseProxySrv have an error #4")
 	}

@@ -65,7 +65,7 @@ func (p *ProxySrv) Start() error {
 	panic(err)
 }
 
-// GetBalancer
+// GetBalancer get an balancer point
 func (p *ProxySrv) GetBalancer() balancer.Balancer {
 
 	return p.balancer
