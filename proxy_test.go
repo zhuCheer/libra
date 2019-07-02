@@ -8,7 +8,23 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
+
+func TestProxyStart(t *testing.T){
+	proxy := NewHttpProxySrv("127.0.0.1:5001", "roundrobin", nil)
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Error("catch error", r)
+			}
+		}()
+		proxy.Start()
+	}()
+
+	time.Sleep(2*time.Second)
+}
 
 func TestProxySrvFun(t *testing.T) {
 	proxy := NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)

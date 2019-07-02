@@ -1,7 +1,6 @@
 package balancer
 
 import (
-	"fmt"
 	"strconv"
 	"sync"
 	"testing"
