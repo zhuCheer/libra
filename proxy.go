@@ -125,8 +125,10 @@ func (p *ProxySrv) dynamicDirector(req *http.Request) {
 		req.Header.Set(errorHeader, err.Error())
 	} else {
 		targetQuery := target.RawQuery
+		//req.Host = target.Host
 		req.URL.Host = target.Host
 		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
+
 
 		if targetQuery == "" || req.URL.RawQuery == "" {
 			req.URL.RawQuery = targetQuery + req.URL.RawQuery
