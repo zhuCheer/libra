@@ -18,9 +18,9 @@ import (
 // Proxy server node struct
 type ProxySrv struct {
 	ProxyAddr    string
-	LoadType     string
 	Scheme       string
 	customHeader map[string]string
+	loadType     string
 	balancer     balancer.Balancer
 }
 
@@ -34,11 +34,16 @@ var (
 
 // new http reverse proxy
 func NewHttpProxySrv(addr string, loadType string, header map[string]string) *ProxySrv {
+	if header == nil {
+		header = map[string]string{}
+	}
+
 	return &ProxySrv{
 		ProxyAddr:    addr,
-		LoadType:     loadType,
 		Scheme:       "http",
 		customHeader: header,
+		balancer:     getBalancerByLoadType(loadType),
+		loadType:     loadType,
 	}
 }
 
@@ -60,28 +65,37 @@ func (p *ProxySrv) Start() error {
 	panic(err)
 }
 
-// verify the ProxyAddr and ManageAddr
-func (p *ProxySrv) verifyAddr() error {
+// get balancer
+func (p *ProxySrv) GetBalancer() balancer.Balancer {
 
-	return nil
+	return p.balancer
 }
 
-// get a balancer
-func (p *ProxySrv) getBalancerRemote(domain string) (*balancer.ProxyTarget, error) {
-	if p.balancer != nil {
-		return p.balancer.GetOne(domain)
-	}
+// change balancer loadType
+func (p *ProxySrv) ChangeLoadType(loadType string) {
+	b := getBalancerByLoadType(loadType)
+	p.balancer = b
+}
 
+// reset custom header
+func (p *ProxySrv) ResetCustomHeader(header map[string]string) {
+	p.customHeader = map[string]string{}
+	p.customHeader = header
+}
+
+// get balancer by lodeType
+func getBalancerByLoadType(loadType string) balancer.Balancer {
 	b := balancer.NewRandomLoad()
-	switch p.LoadType {
+	switch loadType {
 	case "random":
 		b = balancer.NewRandomLoad()
 	case "roundrobin":
 		b = balancer.NewRoundRobinLoad()
+	case "wroundrobin":
+		b = balancer.NewWRoundRobinLoad()
 	}
-	p.balancer = b
 
-	return b.GetOne(domain)
+	return b
 }
 
 // http middleware set some header
@@ -100,7 +114,7 @@ func (p *ProxySrv) httpMiddleware(handler *httputil.ReverseProxy) http.Handler {
 // in this function proxy server knows where to forward to
 // if the target is a error node, proxy will forward to a default error page in local address.
 func (p *ProxySrv) dynamicDirector(req *http.Request) {
-	proxyTarget, err := p.getBalancerRemote(req.Host)
+	proxyTarget, err := p.balancer.GetOne(req.Host)
 	var target *url.URL
 	if err == nil && proxyTarget != nil {
 		target, err = url.Parse(p.Scheme + "://" + proxyTarget.Addr)

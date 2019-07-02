@@ -1,6 +1,7 @@
 package balancer
 
 import (
+	"fmt"
 	"strconv"
 	"sync"
 	"testing"
@@ -87,7 +88,8 @@ func TestAddEndpoint(t *testing.T) {
 	registryMap = nil
 	RegistTargetNoAddr("www.google.com")
 	err := addEndpoint("www.facebook.com", OriginItem{"192.168.1.1:80", 10})
-	if err == nil {
+
+	if _, ok := registryMap["www.facebook.com"]; ok == false {
 		t.Error("AddEndpoint func have an error #1")
 	}
 	err = addEndpoint("www.google.com", OriginItem{"192.168.1.100:80", 10})
@@ -111,46 +113,6 @@ func TestAddEndpoint(t *testing.T) {
 		t.Error("AddEndpoint func have an error #4")
 	}
 
-}
-
-func TestAddAddrWithoutWeight(t *testing.T) {
-	registryMap = nil
-	domain := "www.google.com"
-	RegistTargetNoAddr(domain)
-
-	err := AddAddrWithoutWeight("www.facebook.com", "192.168.1.1:80")
-	if err == nil {
-		t.Error("AddAddrWithoutWeight func have an error #1")
-	}
-
-	AddAddrWithoutWeight(domain, "192.168.137.100")
-	if len(registryMap[domain].Items) != 1 {
-		t.Error("AddAddrWithoutWeight func have an error #2")
-	}
-
-	err = AddAddrWithoutWeight(domain, "192.168.137.100")
-	if err == nil || err.Error() != "the endpoint has existed" {
-		t.Error("AddAddrWithoutWeight func have an error #3")
-	}
-
-	AddAddrWithoutWeight(domain, "192.168.137.101", "192.168.137.102")
-	if len(registryMap[domain].Items) != 3 {
-		t.Error("AddAddrWithoutWeight func have an error #41")
-	}
-}
-
-func TestAddAddrWithWeight(t *testing.T) {
-	registryMap = nil
-	domain := "www.google.com"
-	RegistTargetNoAddr(domain)
-	err := AddAddrWithWeight(domain, "192.168.1.100:80", 80)
-	if err != nil {
-		t.Error("AddAddrWithWeight func have an error #1")
-	}
-
-	if registryMap[domain].Items[0].Weight != 80 {
-		t.Error("AddAddrWithWeight func have an error #2")
-	}
 }
 
 func TestDelEndpoint(t *testing.T) {

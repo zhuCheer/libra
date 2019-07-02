@@ -26,6 +26,16 @@ func (r *WRoundRobinLoad) GetOne(domain string) (*ProxyTarget, error) {
 		return nil, errors.New("not found endpoints")
 	}
 
+	initAllZero := 1
+	for _, item := range targetSrv.Items {
+		if item.Weight > 0 {
+			initAllZero = 0
+		}
+	}
+	if initAllZero == 1 {
+		return nil, errors.New("not found available endpoints")
+	}
+
 	isAllZero := 1
 	for _, item := range r.activeItems {
 		if item.Weight > 0 {
@@ -37,7 +47,8 @@ func (r *WRoundRobinLoad) GetOne(domain string) (*ProxyTarget, error) {
 	}
 
 	var target *ProxyTarget
-	for {
+
+	for i := 0; i < len(r.activeItems); i++ {
 		if r.activeItems[r.activeIndex].Weight > 0 {
 			r.activeItems[r.activeIndex].Weight--
 			target = &ProxyTarget{targetSrv.Domain, r.activeItems[r.activeIndex].Endpoint}
@@ -101,7 +112,11 @@ func (r *WRoundRobinLoad) reloadActiveItems(domain string) error {
 	}
 
 	for k, item := range target.Items {
-		originItems[k].Weight = item.Weight / gcdWeight
+		if originItems[k].Weight == 0 {
+			originItems[k].Weight = 0
+		} else {
+			originItems[k].Weight = item.Weight / gcdWeight
+		}
 	}
 
 	r.activeItems = originItems

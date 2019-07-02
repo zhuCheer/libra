@@ -4,6 +4,25 @@ import (
 	"testing"
 )
 
+func TestWRoudRobinLoadZeroWeight(t *testing.T) {
+
+	var balancer = NewWRoundRobinLoad()
+	domain := "www.facebook.com"
+	registryMap = nil
+	NewTarget(RegistNode{
+		Domain: domain,
+		Items: []OriginItem{
+			{"192.168.1.100", 0},
+			{"192.168.1.101", 0},
+		},
+	})
+	balancer.AddAddr(domain, "192.168.1.102", 0)
+	_, err := balancer.GetOne(domain)
+	if err == nil {
+		t.Error("WRoudRobinLoadZeroWeight GetOne have an error")
+	}
+}
+
 func TestWRoudRobinLoad(t *testing.T) {
 
 	var balancer = NewWRoundRobinLoad()

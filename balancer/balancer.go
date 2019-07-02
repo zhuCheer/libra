@@ -91,29 +91,11 @@ func GetTarget(domain string) (*RegistNode, error) {
 	return &node, nil
 }
 
-// AddEndpointWithoutWeight is a add endpoint function without weight
-// actually the weight used of default value one
-func AddAddrWithoutWeight(domain string, addrs ...string) error {
-
-	endpoints := make([]OriginItem, 0)
-	for _, item := range addrs {
-
-		endpoints = append(endpoints, OriginItem{
-			Endpoint: item,
-			Weight:   1,
-		})
-	}
-	return addEndpoint(domain, endpoints...)
-}
-
-// AddAddrWithWeight is a add endpoint function with weight
-// every addr should with a weight used for balanced choice algorithm.
-func AddAddrWithWeight(domain string, addr string, weight uint32) error {
-	endpoint := OriginItem{
-		Endpoint: addr,
-		Weight:   weight,
-	}
-	return addEndpoint(domain, endpoint)
+// flush an proxy server
+func FlushProxy(domain string) {
+	lock.Lock()
+	defer lock.Unlock()
+	delete(registryMap, domain)
 }
 
 // add an endpoint
@@ -121,18 +103,27 @@ func addEndpoint(domain string, endpoints ...OriginItem) error {
 	lock.Lock()
 	defer lock.Unlock()
 
-	service, ok := registryMap[domain]
-	if ok == false {
-		return ErrServiceNotFound
-	}
-	for _, item := range endpoints {
-		if stringInOriginItem(item.Endpoint, service.Items) {
-			return ErrEndpointExisted
-		}
-		service.Items = append(service.Items, item)
+	if registryMap == nil {
+		registryMap = map[string]RegistNode{}
 	}
 
-	registryMap[domain] = service
+	service, ok := registryMap[domain]
+	if ok == false {
+		registryMap[domain] = RegistNode{
+			domain,
+			endpoints,
+		}
+	} else {
+		for _, item := range endpoints {
+			if stringInOriginItem(item.Endpoint, service.Items) {
+				return ErrEndpointExisted
+			}
+			service.Items = append(service.Items, item)
+		}
+
+		registryMap[domain] = service
+	}
+
 	return nil
 }
 
@@ -154,13 +145,6 @@ func delEndpoint(domain string, addr string) error {
 	}
 	registryMap[domain] = service
 	return nil
-}
-
-// flush an proxy server
-func FlushProxy(domain string) {
-	lock.Lock()
-	defer lock.Unlock()
-	delete(registryMap, domain)
 }
 
 // check endpoint is existed
