@@ -1,5 +1,7 @@
 language: go
 sudo: false
+env:
+  - CODECOV_TOKEN="64ecac44-f28c-4491-a78c-bf48975e722c"
 go:
   - 1.11.x
   - 1.10.x
