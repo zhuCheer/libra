@@ -1,6 +1,7 @@
 # libra 一个动态的反向代理均衡器
 
-[![Build Status](https://travis-ci.org/zhuCheer/libra.svg?branch=master)](https://travis-ci.org/zhuCheer/libra) [![Go Report Card](https://goreportcard.com/badge/github.com/zhuCheer/libra)](https://goreportcard.com/report/github.com/zhuCheer/libra)
+[![Build Status](https://travis-ci.org/zhuCheer/libra.svg?branch=master)](https://travis-ci.org/zhuCheer/libra) [![Go Report Card](https://goreportcard.com/badge/github.com/zhuCheer/libra)](https://goreportcard.com/report/github.com/zhuCheer/libra) [![GoDoc](https://godoc.org/github.com/zhuCheer/libra?status.svg)](https://godoc.org/github.com/zhuCheer/libra)
+
 
 [English document](https://github.com/zhuCheer/libra/blob/master/README.md)， [中文文档](https://github.com/zhuCheer/libra/blob/master/README_CN.md)
 
