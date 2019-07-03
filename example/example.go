@@ -19,8 +19,8 @@ func httpsrv01() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-
-		w.Write([]byte("view http server 01"))
+		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		w.Write([]byte("view http server 01 <br> source code: <a href='https://github.com/zhuCheer/libra'>https://github.com/zhuCheer/libra</a>"))
 	})
 	http.ListenAndServe(":5001", mux)
 }
