@@ -105,7 +105,7 @@ func TestSingleJoiningSlash(t *testing.T) {
 
 	target, _ = url.Parse("http://192.168.1.100/abc")
 	path = singleJoiningSlash(target.Path, "/")
-	if path != "/abc/" {
+	if path != "/abc" {
 		t.Error("singleJoiningSlash func have an error #2")
 	}
 

@@ -200,11 +200,15 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 func singleJoiningSlash(a, b string) string {
 	aslash := strings.HasSuffix(a, "/")
 	bslash := strings.HasPrefix(b, "/")
+
 	switch {
 	case aslash && bslash:
 		return a + b[1:]
 	case !aslash && !bslash:
 		return a + "/" + b
+	}
+	if b == "/" {
+		return a
 	}
 	return a + b
 }
