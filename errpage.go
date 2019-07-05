@@ -17,8 +17,7 @@ var (
 <head><title>{#title#}</title></head>
 <body bgcolor="white">
 <h1>{#title#}</h1>
-<p>{#msg#}<br/>
-Thank you very much!</p>
+<p>{#msg#}<br/>Thank you very much!</p>
 <table>
 <tr>
 <td>URL:</td>
