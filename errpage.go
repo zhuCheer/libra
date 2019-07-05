@@ -32,7 +32,7 @@ var (
 <td>{#time#}</td>
 </tr>
 </table>
-<hr/>Powered by libra/0.0.1</body>
+<hr/>Powered by <a href="https://github.com/zhuCheer/libra" target="_blank">libra/0.0.1</a></body>
 </html>
 `
 )
