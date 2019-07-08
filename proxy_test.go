@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 )
@@ -47,6 +48,11 @@ func TestProxySrvFun(t *testing.T) {
 	if _, ok := proxy.balancer.(*balancer.RandomLoad); ok == false {
 		t.Error("NewHttpProxySrv ChangeLoadType have an error #4")
 	}
+
+	b := proxy.GetBalancer()
+	if b != proxy.balancer {
+		t.Error("NewHttpProxySrv GetBalancer have an error #5")
+	}
 }
 
 func TestReverseProxySrv(t *testing.T) {
@@ -61,15 +67,19 @@ func TestReverseProxySrv(t *testing.T) {
 	ts := httptest.NewServer(proxy.httpMiddleware(reverseProxy))
 	defer ts.Close()
 
-	res, err := http.Get(ts.URL)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", ts.URL, strings.NewReader(""))
 	if err != nil {
 		t.Error(err)
 	}
+	req.Header.Del("User-Agent")
+
+	res, err := client.Do(req)
+	defer res.Body.Close()
 
 	if res.StatusCode != 500 {
 		t.Error("ReverseProxySrv have an error #1")
 	}
-
 	testHeader := res.Header.Get("httptest")
 	if testHeader != "01023" {
 		t.Error("ReverseProxySrv have an error #2")
@@ -93,6 +103,29 @@ func TestReverseProxySrv(t *testing.T) {
 	}
 	if string(greeting) != "testing ReverseProxySrv" {
 		t.Error("ReverseProxySrv have an error #4")
+	}
+}
+
+func TestGetBalancerByLoadType(t *testing.T) {
+
+	b := getBalancerByLoadType("xxx")
+	if _, ok := b.(*balancer.RandomLoad); ok == false {
+		t.Error("getBalancerByLoadType func have an error #1")
+	}
+
+	b = getBalancerByLoadType("random")
+	if _, ok := b.(*balancer.RandomLoad); ok == false {
+		t.Error("getBalancerByLoadType func have an error #2")
+	}
+
+	b = getBalancerByLoadType("roundrobin")
+	if _, ok := b.(*balancer.RoundRobinLoad); ok == false {
+		t.Error("getBalancerByLoadType func have an error #2")
+	}
+
+	b = getBalancerByLoadType("wroundrobin")
+	if _, ok := b.(*balancer.WRoundRobinLoad); ok == false {
+		t.Error("getBalancerByLoadType func have an error #2")
 	}
 }
 
