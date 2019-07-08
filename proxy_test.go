@@ -14,7 +14,7 @@ import (
 
 func TestProxyStart(t *testing.T) {
 	proxy := NewHttpProxySrv("127.0.0.1:5001", "roundrobin", nil)
-
+	proxy.Scheme = ""
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -88,13 +88,18 @@ func TestReverseProxySrv(t *testing.T) {
 	tsUrl, _ := url.Parse(ts.URL)
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
 	proxy.balancer.AddAddr(tsUrl.Host, targetHttpUrl.Host, 0)
-	res, err = http.Get(ts.URL)
+	res, err = http.Get(ts.URL + "?abc=123")
 	if err != nil {
 		t.Error(err)
 	}
 	if res.StatusCode != 200 {
 		t.Error("ReverseProxySrv have an error #3")
 	}
+
+	if res.Request.URL.RawQuery != "abc=123" {
+		t.Error("ReverseProxySrv have an error #4")
+	}
+
 	greeting, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 
@@ -102,7 +107,52 @@ func TestReverseProxySrv(t *testing.T) {
 		t.Error(err)
 	}
 	if string(greeting) != "testing ReverseProxySrv" {
-		t.Error("ReverseProxySrv have an error #4")
+		t.Error("ReverseProxySrv have an error #5")
+	}
+}
+
+func TestReverseProxySrvUnStart(t *testing.T) {
+	targetHttpServer := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "testing ReverseProxySrvUnStart")
+	}))
+	defer targetHttpServer.Close()
+
+	proxy := NewHttpProxySrv("127.0.0.1:5001", "roundrobin", nil)
+	reverseProxy := proxy.dynamicReverseProxy()
+
+	ts := httptest.NewServer(proxy.httpMiddleware(reverseProxy))
+	defer ts.Close()
+
+	tsUrl, _ := url.Parse(ts.URL)
+	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
+	proxy.balancer.AddAddr(tsUrl.Host, targetHttpUrl.Host, 0)
+	res, _ := http.Get(ts.URL)
+
+	if res.StatusCode != 502 {
+		t.Error("ReverseProxySrv have an error(UnStart) #1")
+	}
+}
+
+func TestReverseProxySrvNotFound(t *testing.T) {
+	targetHttpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(404)
+		fmt.Fprint(w, "testing ReverseProxySrv NotFound")
+	}))
+	defer targetHttpServer.Close()
+
+	proxy := NewHttpProxySrv("127.0.0.1:5002", "roundrobin", nil)
+	reverseProxy := proxy.dynamicReverseProxy()
+
+	ts := httptest.NewServer(proxy.httpMiddleware(reverseProxy))
+	defer ts.Close()
+
+	tsUrl, _ := url.Parse(ts.URL)
+	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
+	proxy.balancer.AddAddr(tsUrl.Host, targetHttpUrl.Host, 0)
+	res, _ := http.Get(ts.URL)
+
+	if res.StatusCode != 404 {
+		t.Error("ReverseProxySrv have an error(NotFound) #1")
 	}
 }
 
@@ -152,6 +202,12 @@ func TestSingleJoiningSlash(t *testing.T) {
 	path = singleJoiningSlash(target.Path, "/efg")
 	if path != "/abc/efg" {
 		t.Error("singleJoiningSlash func have an error #4")
+	}
+
+	target, _ = url.Parse("http://192.168.1.100/abc")
+	path = singleJoiningSlash(target.Path, "efg")
+	if path != "/abc/efg" {
+		t.Error("singleJoiningSlash func have an error #5")
 	}
 
 }
