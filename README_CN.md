@@ -1,84 +1,84 @@
-# libra Ò»¸ö¶¯Ì¬µÄ·´Ïò´úÀí¾ùºâÆ÷
+# libra ä¸€ä¸ªåŠ¨æ€çš„åå‘ä»£ç†å‡è¡¡å™¨
 
 [![Build Status](https://travis-ci.org/zhuCheer/libra.svg?branch=master)](https://travis-ci.org/zhuCheer/libra) [![Go Report Card](https://goreportcard.com/badge/github.com/zhuCheer/libra)](https://goreportcard.com/report/github.com/zhuCheer/libra) [![GoDoc](https://godoc.org/github.com/zhuCheer/libra?status.svg)](https://godoc.org/github.com/zhuCheer/libra) [![codecov](https://codecov.io/gh/zhuCheer/libra/branch/master/graph/badge.svg)](https://codecov.io/gh/zhuCheer/libra)
 
 
-[English document](https://github.com/zhuCheer/libra/blob/master/README.md)£¬ [ÖÐÎÄÎÄµµ](https://github.com/zhuCheer/libra/blob/master/README_CN.md)
+[English document](https://github.com/zhuCheer/libra/blob/master/README.md)ï¼Œ [ä¸­æ–‡æ–‡æ¡£](https://github.com/zhuCheer/libra/blob/master/README_CN.md)
 
-## Ïà¹ØÌØÐÔ
-- ¶¯Ì¬½øÐÐ¶àµØÖ··´Ïò´úÀí
-- ¶¯Ì¬¹ÜÀíÔ´Õ¾µØÖ·
-- Ö§³Ö¶¯Ì¬ÐÞ¸Ä¶¨ÏìÓ¦Í·
-- ´úÂë¶¼ÓÐÑÏ¸ñµÄµ¥Ôª²âÊÔ£¬¿É¿¿¶È¸ß
+## ç›¸å…³ç‰¹æ€§
+- åŠ¨æ€è¿›è¡Œå¤šåœ°å€åå‘ä»£ç†
+- åŠ¨æ€ç®¡ç†æºç«™åœ°å€
+- æ”¯æŒåŠ¨æ€ä¿®æ”¹å®šå“åº”å¤´
+- ä»£ç éƒ½æœ‰ä¸¥æ ¼çš„å•å…ƒæµ‹è¯•ï¼Œå¯é åº¦é«˜
 
-Äã¿ÉÒÔÍ¨¹ý´Ë°üÀ´¿ìËÙ¹¹½¨Ò»¸ö¶¯Ì¬µÄ¸ºÔØ¾ùºâ·þÎñÆ÷£¬Ä¿Ç°ÓÐÈýÖÖ¸ºÔØ¾ùºâËã·¨£¬·Ö±ðÊÇËæ»ú£¬ÂÖÑ¯£¬´øÈ¨ÂÖÑ¯£»´Ë°ü½ÔÓÉÔ­Éú´úÂë¹¹½¨£¬²»ÒÀÀµÆäËûµÚÈý·½°ü£»Èç¹ûÄãÏë¿ìËÙµÄ»ñµÃÒ»¸ö¸ºÔØ¾ùºâ·þÎñÆ÷£¬¿ìÀ´Ê¹ÓÃËü°É¡£
-
-
-## ¿ìËÙ¿ªÊ¼
+ä½ å¯ä»¥é€šè¿‡æ­¤åŒ…æ¥å¿«é€Ÿæž„å»ºä¸€ä¸ªåŠ¨æ€çš„è´Ÿè½½å‡è¡¡æœåŠ¡å™¨ï¼Œç›®å‰æœ‰ä¸‰ç§è´Ÿè½½å‡è¡¡ç®—æ³•ï¼Œåˆ†åˆ«æ˜¯éšæœºï¼Œè½®è¯¢ï¼Œå¸¦æƒè½®è¯¢ï¼›æ­¤åŒ…çš†ç”±åŽŸç”Ÿä»£ç æž„å»ºï¼Œä¸ä¾èµ–å…¶ä»–ç¬¬ä¸‰æ–¹åŒ…ï¼›å¦‚æžœä½ æƒ³å¿«é€Ÿçš„èŽ·å¾—ä¸€ä¸ªè´Ÿè½½å‡è¡¡æœåŠ¡å™¨ï¼Œå¿«æ¥ä½¿ç”¨å®ƒå§ã€‚
 
 
-#### ÏÂÔØ°²×°
+## å¿«é€Ÿå¼€å§‹
 
-ÔÚ¿ØÖÆÌ¨ÊäÈë
+
+#### ä¸‹è½½å®‰è£…
+
+åœ¨æŽ§åˆ¶å°è¾“å…¥
 `go get github.com/zhuCheer/libra`
 
-#### ÔËÐÐÊ¾Àý
+#### è¿è¡Œç¤ºä¾‹
 
-½øÈëµ½°üÖÐ example Ä¿Â¼£¬È»ºóÔËÐÐ example.go ¼´¿É¿ªÆôÒ»¸ö·´Ïò´úÀí·þÎñÆ÷
+è¿›å…¥åˆ°åŒ…ä¸­ example ç›®å½•ï¼Œç„¶åŽè¿è¡Œ example.go å³å¯å¼€å¯ä¸€ä¸ªåå‘ä»£ç†æœåŠ¡å™¨
 ```
 > cd ../src/github.com/zhuCheer/libra/example
 > go run example.go
 
 ```
 
-´ËÊ±¿ÉÒÔÍ¨¹ýä¯ÀÀÆ÷·ÃÎÊ `http://127.0.0.1:5000` ¼´¿É¿´µ½´úÀíÐ§¹û£¬»áÒÔÂÖÑ¯µÄ·½Ê½·ÃÎÊ`http://127.0.0.1:5001`, `http://127.0.0.1:5002` ÕâÁ½¸ö http ·þÎñ¡£
+æ­¤æ—¶å¯ä»¥é€šè¿‡æµè§ˆå™¨è®¿é—® `http://127.0.0.1:5000` å³å¯çœ‹åˆ°ä»£ç†æ•ˆæžœï¼Œä¼šä»¥è½®è¯¢çš„æ–¹å¼è®¿é—®`http://127.0.0.1:5001`, `http://127.0.0.1:5002` å’Œ `http://127.0.0.1:5003` è¿™ä¸‰ä¸ª http æœåŠ¡ã€‚
 
 
-#### ÏêÏ¸²½ÖèËµÃ÷
+#### è¯¦ç»†æ­¥éª¤è¯´æ˜Ž
 ```
 import "github.com/zhuCheer/libra"
 
     
-// ×¢²áÒ»¸ö·´Ïò´úÀí·þÎñÆ÷£¬·´´ú·þÎñÆ÷·ÃÎÊµÄ ip ºÍ¶Ë¿Ú£¬¸ºÔØ¾ùºâÀàÐÍ£¬ºÍ×Ô¶¨ÒåÏìÓ¦Í· Èý¸ö²ÎÊý
-// ¸ºÔØ¾ùºâÀàÐÍÄ¿Ç°ÓÐÈýÖÖ¿ÉÑ¡ random:Ëæ»ú£¬roundrobin:ÂÖÑ¯£¬wroundrobin:´øÈ¨ÂÖÑ¯
+// æ³¨å†Œä¸€ä¸ªåå‘ä»£ç†æœåŠ¡å™¨ï¼Œåä»£æœåŠ¡å™¨è®¿é—®çš„ ip å’Œç«¯å£ï¼Œè´Ÿè½½å‡è¡¡ç±»åž‹ï¼Œå’Œè‡ªå®šä¹‰å“åº”å¤´ ä¸‰ä¸ªå‚æ•°
+// è´Ÿè½½å‡è¡¡ç±»åž‹ç›®å‰æœ‰ä¸‰ç§å¯é€‰ random:éšæœºï¼Œroundrobin:è½®è¯¢ï¼Œwroundrobin:å¸¦æƒè½®è¯¢
 srv := libra.NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
 
 
-// Ìí¼Ó´úÀíÄ¿±êµÄÓòÃûºÍ ip µØÖ·¶Ë¿Ú
+// æ·»åŠ ä»£ç†ç›®æ ‡çš„åŸŸåå’Œ ip åœ°å€ç«¯å£
 srv.GetBalancer().AddAddr("www.yourappdomain.com", "127.0.0.1:5001", 1)
 srv.GetBalancer().AddAddr("www.yourappdomain.com", "127.0.0.1:5002", 1)
 
 
-// Æô¶¯·´Ïò´úÀí·þÎñ
+// å¯åŠ¨åå‘ä»£ç†æœåŠ¡
 srv.Start()
 ```
 
-#### Ô­ÀíÏê½â
+#### åŽŸç†è¯¦è§£
 
-- ½«ÎÒÃÇµÄ¸÷ÀàÓ¦ÓÃµÃÓòÃû¶¼Ö±½Ó½âÎöµ½´Ë´úÀí·þÎñÆ÷£¬ÎÒÃÇ¿É³Æ´Ë·þÎñÎªÒ»¸öÍø¹Ø£»
-- ·´Ïò´úÀí·þÎñÆô¶¯ºó£¬ÎÒÃÇÍ¨¹ý²»Í¬µÄÓòÃû¼´¿É·ÃÎÊµ½ÎÒÃÇÌí¼ÓµÄÖ¸¶¨ ip ÉÏ£¬´ó¶àÊýÇé¿öÎÒÃÇ»áÓÐ¶à¸ö·þÎñÆ÷£¬·ÃÎÊÇëÇó½«°´ÕÕÖ¸¶¨µÄ¸ºÔØ¾ùºâËã·¨½øÐÐµ÷¶È£»
-- ·ÃÎÊ¹ý³ÌÈçÏÂÍ¼ËùÊ¾£º
+- å°†æˆ‘ä»¬çš„å„ç±»åº”ç”¨å¾—åŸŸåéƒ½ç›´æŽ¥è§£æžåˆ°æ­¤ä»£ç†æœåŠ¡å™¨ï¼Œæˆ‘ä»¬å¯ç§°æ­¤æœåŠ¡ä¸ºä¸€ä¸ªç½‘å…³ï¼›
+- åå‘ä»£ç†æœåŠ¡å¯åŠ¨åŽï¼Œæˆ‘ä»¬é€šè¿‡ä¸åŒçš„åŸŸåå³å¯è®¿é—®åˆ°æˆ‘ä»¬æ·»åŠ çš„æŒ‡å®š ip ä¸Šï¼Œå¤§å¤šæ•°æƒ…å†µæˆ‘ä»¬ä¼šæœ‰å¤šä¸ªæœåŠ¡å™¨ï¼Œè®¿é—®è¯·æ±‚å°†æŒ‰ç…§æŒ‡å®šçš„è´Ÿè½½å‡è¡¡ç®—æ³•è¿›è¡Œè°ƒåº¦ï¼›
+- è®¿é—®è¿‡ç¨‹å¦‚ä¸‹å›¾æ‰€ç¤ºï¼š
 
 ![image](https://img.douyucdn.cn/data/yuba/weibo/2019/07/02/201907021730116899917826388.gif)
 
-## Ïà¹Ø²Ù×÷·½·¨½éÉÜ
+## ç›¸å…³æ“ä½œæ–¹æ³•ä»‹ç»
 
 ```
 import "github.com/zhuCheer/libra"
 srv := libra.NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
 
 
-// ÉèÖÃÏìÓ¦Í·
+// è®¾ç½®å“åº”å¤´
 srv.ResetCustomHeader(map[string]string{"X-LIBRA": "the smart ReverseProxy"})
 
-// ÇÐ»»¸ºÔØ¾ùºâÀàÐÍ
+// åˆ‡æ¢è´Ÿè½½å‡è¡¡ç±»åž‹
 srv.ChangeLoadType("random")
 
 
-// Ìí¼ÓÄ¿±ê·þÎñÆ÷½ÚµãÐÅÏ¢£¬Ìí¼Óºó¼´ÉúÐ§£¬ÎÞÐèÖØÆô
+// æ·»åŠ ç›®æ ‡æœåŠ¡å™¨èŠ‚ç‚¹ä¿¡æ¯ï¼Œæ·»åŠ åŽå³ç”Ÿæ•ˆï¼Œæ— éœ€é‡å¯
 srv.GetBalancer().AddAddr("www.yourappdomain.com","192.168.1.100:8081", 1)
 
-// É¾³ýÄ¿±ê·þÎñÆ÷½ÚµãÐÅÏ¢£¬Ìí¼Óºó¼´ÉúÐ§£¬ÎÞÐèÖØÆô
+// åˆ é™¤ç›®æ ‡æœåŠ¡å™¨èŠ‚ç‚¹ä¿¡æ¯ï¼Œæ·»åŠ åŽå³ç”Ÿæ•ˆï¼Œæ— éœ€é‡å¯
 srv.GetBalancer().DelAddr("www.yourappdomain.com","192.168.1.100:8081")
 
 ```

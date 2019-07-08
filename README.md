@@ -29,7 +29,7 @@ Change directory to libra package and run the example.go, you can start a revers
 
 ```
 
-Now,you can open browser to `http://127.0.0.1:5000`,you will see the reverse proxy, it running with round robin balance to `http://127.0.0.1:5001` and `http://127.0.0.1:5002` http server.
+Now,you can open browser to `http://127.0.0.1:5000`,you will see the reverse proxy, it running with round robin balance to `http://127.0.0.1:5001`, `http://127.0.0.1:5002` and `http://127.0.0.1:5003` http server.
 
 
 #### How to use
