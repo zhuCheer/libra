@@ -5,7 +5,7 @@ go:
   - 1.10.x
 
 script:
-  - go test ./... -cover
+  - go test ./... -race
   
 after_success:
   - bash <(curl -s https://codecov.io/bash)
