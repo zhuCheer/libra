@@ -2,15 +2,17 @@ package balancer
 
 import (
 	"errors"
+
+	"log"
 	"sync"
 )
 
 // Balancer is an interface used to lookup the target host
 // Interfaces can be implemented using different algorithms, loop/round robin or others
 type Balancer interface {
-	AddAddr(domain string, addr string, weight uint32) error //add target addr
-	DelAddr(domain string, addr string) error                // del target addr
-	GetOne(domain string) (*ProxyTarget, error)              // Return the endpoint by different algorithms
+	AddAddr(addr string, weight uint32) error //add target addr
+	DelAddr(addr string) error                // del target addr
+	GetOne() (*ProxyTarget, error)            // Return the endpoint by different algorithms
 }
 
 // Common errors.
@@ -25,7 +27,7 @@ var (
 var lock sync.RWMutex
 
 // global registry proxy data
-var registryMap map[string]RegistNode
+var registryMap map[string]*RegistNode
 
 // OriginItem struct addr and weight
 type OriginItem struct {
@@ -35,9 +37,10 @@ type OriginItem struct {
 
 // RegistNode register a proxy node struct
 type RegistNode struct {
-	//Name         string
-	Domain string
-	Items  []OriginItem
+	Domain   string
+	Items    []OriginItem
+	Balancer Balancer
+	Scheme   string
 }
 
 // ProxyTarget proxy target node struct
@@ -46,39 +49,68 @@ type ProxyTarget struct {
 	Addr   string
 }
 
-// NewTarget New Target server is register a node
-func NewTarget(node RegistNode) error {
+// newTarget New Target server is register a node
+func newTarget(node RegistNode) error {
 	lock.Lock()
 	defer lock.Unlock()
 	if _, ok := registryMap[node.Domain]; !ok {
 		if registryMap == nil {
-			registryMap = map[string]RegistNode{}
+			registryMap = map[string]*RegistNode{}
 		}
 
-		registryMap[node.Domain] = node
+		registryMap[node.Domain] = &node
 		return nil
 	}
 	return ErrServiceExisted
 }
 
 // RegistTargetNoAddr register a target server node target ip list is empty
-func RegistTargetNoAddr(domain string) {
+func RegistTargetNoAddr(domain, loadType, scheme string) *RegistNode {
 	lock.Lock()
 	defer lock.Unlock()
 	if _, ok := registryMap[domain]; !ok {
 		if registryMap == nil {
-			registryMap = map[string]RegistNode{}
+			registryMap = map[string]*RegistNode{}
 		}
 
-		registryMap[domain] = RegistNode{
-			Domain: domain,
-			Items:  []OriginItem{},
+		registryMap[domain] = &RegistNode{
+			Domain:   domain,
+			Items:    []OriginItem{},
+			Balancer: getBalancerByLoadType(domain, loadType),
+			Scheme:   scheme,
 		}
+		return registryMap[domain]
+	} else {
+		return registryMap[domain]
 	}
 }
 
-// GetTarget get a Target server
-func GetTarget(domain string) (*RegistNode, error) {
+// getBalancerByLoadType get balancer by lodeType
+func getBalancerByLoadType(domain, loadType string) Balancer {
+	b := NewRandomLoad(domain)
+	switch loadType {
+	case "random":
+		b = NewRandomLoad(domain)
+	case "roundrobin":
+		b = NewRoundRobinLoad(domain)
+	case "wroundrobin":
+		b = NewWRoundRobinLoad(domain)
+	}
+	return b
+}
+
+// GetSiteInfo get target for out package
+func GetSiteInfo(domain string) (*RegistNode, error) {
+	info, err := getTarget(domain)
+	if err != nil {
+		log.Printf("GetSiteInfo func have error %v", err)
+	}
+
+	return info, err
+}
+
+// getTarget get a Target server
+func getTarget(domain string) (*RegistNode, error) {
 	lock.RLock()
 	node, ok := registryMap[domain]
 	lock.RUnlock()
@@ -87,7 +119,7 @@ func GetTarget(domain string) (*RegistNode, error) {
 		return nil, ErrServiceNotFound
 	}
 
-	return &node, nil
+	return node, nil
 }
 
 // FlushProxy flush an proxy server
@@ -103,14 +135,16 @@ func addEndpoint(domain string, endpoints ...OriginItem) error {
 	defer lock.Unlock()
 
 	if registryMap == nil {
-		registryMap = map[string]RegistNode{}
+		registryMap = map[string]*RegistNode{}
 	}
 
 	service, ok := registryMap[domain]
 	if ok == false {
-		registryMap[domain] = RegistNode{
+		registryMap[domain] = &RegistNode{
 			domain,
 			endpoints,
+			getBalancerByLoadType(domain, "random"),
+			"http",
 		}
 	} else {
 		for _, item := range endpoints {
@@ -119,8 +153,6 @@ func addEndpoint(domain string, endpoints ...OriginItem) error {
 			}
 			service.Items = append(service.Items, item)
 		}
-
-		registryMap[domain] = service
 	}
 
 	return nil
@@ -142,7 +174,25 @@ func delEndpoint(domain string, addr string) error {
 			break
 		}
 	}
-	registryMap[domain] = service
+	return nil
+}
+
+// ChangeLoadType set site load type
+func ChangeLoadType(domain string, loadType string) error {
+	lock.Lock()
+	defer lock.Unlock()
+
+	service, ok := registryMap[domain]
+	if ok == false {
+		registryMap[domain] = &RegistNode{
+			domain,
+			[]OriginItem{},
+			getBalancerByLoadType(domain, loadType),
+			"http",
+		}
+	} else {
+		service.Balancer = getBalancerByLoadType(domain, loadType)
+	}
 	return nil
 }
 

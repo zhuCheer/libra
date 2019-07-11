@@ -7,19 +7,20 @@ import (
 // WRoundRobinLoad this is a round robin by weight balancer
 // weighted round robin struct
 type WRoundRobinLoad struct {
+	domain       string
 	activeIndex  int
 	activeWeight uint32
 	activeItems  []OriginItem
 }
 
 // NewWRoundRobinLoad get a WRoundRobin point
-func NewWRoundRobinLoad() Balancer {
-	return &WRoundRobinLoad{0, 0, []OriginItem{}}
+func NewWRoundRobinLoad(domain string) Balancer {
+	return &WRoundRobinLoad{domain, 0, 0, []OriginItem{}}
 }
 
 // GetOne get an target by round robin with weight
-func (r *WRoundRobinLoad) GetOne(domain string) (*ProxyTarget, error) {
-	targetSrv, err := GetTarget(domain)
+func (r *WRoundRobinLoad) GetOne() (*ProxyTarget, error) {
+	targetSrv, err := getTarget(r.domain)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (r *WRoundRobinLoad) GetOne(domain string) (*ProxyTarget, error) {
 		}
 	}
 	if isAllZero == 1 {
-		r.reloadActiveItems(domain)
+		r.reloadActiveItems()
 	}
 
 	var target *ProxyTarget
@@ -64,17 +65,17 @@ func (r *WRoundRobinLoad) GetOne(domain string) (*ProxyTarget, error) {
 }
 
 // AddAddr add an endpoint
-func (r *WRoundRobinLoad) AddAddr(domain string, addr string, weight uint32) error {
+func (r *WRoundRobinLoad) AddAddr(addr string, weight uint32) error {
 	endpoint := OriginItem{
 		Endpoint: addr,
 		Weight:   weight,
 	}
-	err := addEndpoint(domain, endpoint)
+	err := addEndpoint(r.domain, endpoint)
 	if err != nil {
 		return err
 	}
 
-	err = r.reloadActiveItems(domain)
+	err = r.reloadActiveItems()
 	if err != nil {
 		return err
 	}
@@ -83,13 +84,13 @@ func (r *WRoundRobinLoad) AddAddr(domain string, addr string, weight uint32) err
 }
 
 // DelAddr delete an endpoint
-func (r *WRoundRobinLoad) DelAddr(domain string, addr string) error {
-	err := delEndpoint(domain, addr)
+func (r *WRoundRobinLoad) DelAddr(addr string) error {
+	err := delEndpoint(r.domain, addr)
 	if err != nil {
 		return err
 	}
 
-	err = r.reloadActiveItems(domain)
+	err = r.reloadActiveItems()
 	if err != nil {
 		return err
 	}
@@ -98,8 +99,8 @@ func (r *WRoundRobinLoad) DelAddr(domain string, addr string) error {
 
 // reloadActiveItems reload active weight
 // when edit items,should run this func
-func (r *WRoundRobinLoad) reloadActiveItems(domain string) error {
-	target, err := GetTarget(domain)
+func (r *WRoundRobinLoad) reloadActiveItems() error {
+	target, err := getTarget(r.domain)
 	if err != nil {
 		return err
 	}

@@ -6,15 +6,15 @@ import (
 )
 
 func TestRoudRobinLoad(t *testing.T) {
-	var balancer = NewRoundRobinLoad()
-	target, err := balancer.GetOne("name")
+	var balancer = NewRoundRobinLoad("name")
+	target, err := balancer.GetOne()
 	if err == nil {
 		t.Error("NewRoundRobinLoad func have an error #1")
 	}
 
 	domain := "www.google.com"
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: domain,
 		Items: []OriginItem{
 			{"192.168.1.100", 80},
@@ -28,13 +28,14 @@ func TestRoudRobinLoad(t *testing.T) {
 			{"192.168.1.108", 80},
 		},
 	})
+	balancer = NewRoundRobinLoad(domain)
 
 	// concurrency test should be ok
 	var wg sync.WaitGroup
 	wg.Add(5)
 	for i := 0; i < 5; i++ {
 		go func() {
-			target, _ = balancer.GetOne(domain)
+			target, _ = balancer.GetOne()
 			wg.Done()
 		}()
 	}
@@ -47,7 +48,7 @@ func TestRoudRobinLoad(t *testing.T) {
 
 	// loop times at 30
 	for i := 0; i < 25; i++ {
-		target, _ = balancer.GetOne(domain)
+		target, _ = balancer.GetOne()
 	}
 
 	if target.Addr != "192.168.1.102" {
@@ -57,10 +58,10 @@ func TestRoudRobinLoad(t *testing.T) {
 }
 
 func TestAddAddrRoundRobin(t *testing.T) {
-	var balancer = NewRoundRobinLoad()
 	domain := "www.google.com"
+	var balancer = NewRoundRobinLoad(domain)
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: domain,
 		Items: []OriginItem{
 			{"192.168.1.100", 80},
@@ -70,8 +71,8 @@ func TestAddAddrRoundRobin(t *testing.T) {
 		t.Error("AddAddr func have an error #1")
 	}
 
-	balancer.AddAddr(domain, "192.168.1.101", 0)
-	balancer.AddAddr(domain, "192.168.1.102", 0)
+	balancer.AddAddr("192.168.1.101", 0)
+	balancer.AddAddr("192.168.1.102", 0)
 
 	if len(registryMap[domain].Items) != 3 {
 		t.Error("AddAddr func have an error #2")
@@ -79,10 +80,11 @@ func TestAddAddrRoundRobin(t *testing.T) {
 }
 
 func TestDelAddrRoundRobin(t *testing.T) {
-	var balancer = NewRoundRobinLoad()
+
 	domain := "www.google.com"
+	var balancer = NewRoundRobinLoad(domain)
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: domain,
 		Items: []OriginItem{
 			{"192.168.1.100", 80},
@@ -91,7 +93,7 @@ func TestDelAddrRoundRobin(t *testing.T) {
 		},
 	})
 
-	balancer.DelAddr(domain, "192.168.1.101")
+	balancer.DelAddr("192.168.1.101")
 
 	if len(registryMap[domain].Items) != 2 {
 		t.Error("DelAddr func have an error #1")

@@ -5,44 +5,44 @@ import (
 )
 
 func TestWRoudRobinLoadZeroWeight(t *testing.T) {
-
-	var balancer = NewWRoundRobinLoad()
 	domain := "www.facebook.com"
+	var balancer = NewWRoundRobinLoad(domain)
+
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: domain,
 		Items: []OriginItem{
 			{"192.168.1.100", 0},
 			{"192.168.1.101", 0},
 		},
 	})
-	balancer.AddAddr(domain, "192.168.1.102", 0)
-	_, err := balancer.GetOne(domain)
+	balancer.AddAddr("192.168.1.102", 0)
+	_, err := balancer.GetOne()
 	if err == nil {
 		t.Error("WRoudRobinLoadZeroWeight GetOne have an error")
 	}
 }
 
 func TestWRoudRobinLoad(t *testing.T) {
-
-	var balancer = NewWRoundRobinLoad()
 	domain := "www.google.com"
+	var balancer = NewWRoundRobinLoad(domain)
+
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: domain,
 		Items: []OriginItem{
 			{"192.168.1.100", 80},
 			{"192.168.1.101", 40},
 		},
 	})
-	balancer.AddAddr(domain, "192.168.1.102", 40)
+	balancer.AddAddr("192.168.1.102", 40)
 
 	v1 := 0
 	v2 := 0
 	v3 := 0
 	// loop times at 30
 	for i := 0; i < 60; i++ {
-		target, _ := balancer.GetOne(domain)
+		target, _ := balancer.GetOne()
 
 		if target.Addr == "192.168.1.100" {
 			v1++
@@ -60,10 +60,11 @@ func TestWRoudRobinLoad(t *testing.T) {
 }
 
 func TestAddAddrWRoundRobin(t *testing.T) {
-	var balancer = NewWRoundRobinLoad()
 	domain := "www.google.com"
+	var balancer = NewWRoundRobinLoad(domain)
+
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: domain,
 		Items: []OriginItem{
 			{"192.168.1.100", 80},
@@ -73,8 +74,8 @@ func TestAddAddrWRoundRobin(t *testing.T) {
 		t.Error("AddAddr func have an error #1")
 	}
 
-	balancer.AddAddr(domain, "192.168.1.101", 40)
-	balancer.AddAddr(domain, "192.168.1.102", 40)
+	balancer.AddAddr("192.168.1.101", 40)
+	balancer.AddAddr("192.168.1.102", 40)
 
 	if len(registryMap[domain].Items) != 3 {
 		t.Error("AddAddr func have an error #2")
@@ -82,10 +83,10 @@ func TestAddAddrWRoundRobin(t *testing.T) {
 }
 
 func TestDelAddrWRoundRobin(t *testing.T) {
-	var balancer = NewWRoundRobinLoad()
 	domain := "www.google.com"
+	var balancer = NewWRoundRobinLoad(domain)
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: domain,
 		Items: []OriginItem{
 			{"192.168.1.100", 80},
@@ -94,7 +95,7 @@ func TestDelAddrWRoundRobin(t *testing.T) {
 		},
 	})
 
-	balancer.DelAddr(domain, "192.168.1.101")
+	balancer.DelAddr("192.168.1.101")
 
 	if len(registryMap[domain].Items) != 2 {
 		t.Error("DelAddr func have an error #1")

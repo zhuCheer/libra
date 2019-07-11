@@ -9,11 +9,12 @@ func main() {
 	go httpsrv01()
 	go httpsrv02()
 	go httpsrv03()
-	var srv = libra.NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
-	srv.GetBalancer().AddAddr("127.0.0.1:5000", "127.0.0.1:5001", 1)
-	srv.GetBalancer().AddAddr("127.0.0.1:5000", "127.0.0.1:5002", 1)
-	srv.GetBalancer().AddAddr("127.0.0.1:5000", "127.0.0.1:5003", 1)
-	srv.Scheme = "http"
+	var srv = libra.NewHttpProxySrv("127.0.0.1:5000", nil)
+	srv.RegistSite("127.0.0.1:5000", "roundrobin", "http")
+
+	srv.AddAddr("127.0.0.1:5000", "127.0.0.1:5001", 1)
+	srv.AddAddr("127.0.0.1:5000", "127.0.0.1:5002", 1)
+	srv.AddAddr("127.0.0.1:5000", "127.0.0.1:5003", 1)
 	srv.Start()
 }
 

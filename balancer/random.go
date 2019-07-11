@@ -7,17 +7,19 @@ import (
 
 // RandomLoad Load Balancers By Random
 // you will get an random origin address
-type RandomLoad struct{}
+type RandomLoad struct {
+	domain string
+}
 
 // NewRandomLoad get a RandomLoad point
-func NewRandomLoad() Balancer {
+func NewRandomLoad(domain string) Balancer {
 
-	return &RandomLoad{}
+	return &RandomLoad{domain}
 }
 
 // GetOne get an target by random
-func (r *RandomLoad) GetOne(domain string) (*ProxyTarget, error) {
-	targetSrv, err := GetTarget(domain)
+func (r *RandomLoad) GetOne() (*ProxyTarget, error) {
+	targetSrv, err := getTarget(r.domain)
 	if err != nil {
 		return nil, err
 	}
@@ -30,15 +32,15 @@ func (r *RandomLoad) GetOne(domain string) (*ProxyTarget, error) {
 }
 
 // AddAddr add an endpoint
-func (r *RandomLoad) AddAddr(domain string, addr string, weight uint32) error {
+func (r *RandomLoad) AddAddr(addr string, weight uint32) error {
 	endpoint := OriginItem{
 		Endpoint: addr,
 		Weight:   weight,
 	}
-	return addEndpoint(domain, endpoint)
+	return addEndpoint(r.domain, endpoint)
 }
 
 // DelAddr delete an endpoint
-func (r *RandomLoad) DelAddr(domain string, addr string) error {
-	return delEndpoint(domain, addr)
+func (r *RandomLoad) DelAddr(addr string) error {
+	return delEndpoint(r.domain, addr)
 }

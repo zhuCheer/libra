@@ -13,8 +13,7 @@ import (
 )
 
 func TestProxyStart(t *testing.T) {
-	proxy := NewHttpProxySrv("127.0.0.1:5001", "roundrobin", nil)
-	proxy.Scheme = ""
+	proxy := NewHttpProxySrv("127.0.0.1:5000", nil)
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -28,10 +27,18 @@ func TestProxyStart(t *testing.T) {
 }
 
 func TestProxySrvFun(t *testing.T) {
-	proxy := NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
-	if _, ok := proxy.balancer.(*balancer.RoundRobinLoad); ok == false {
+	domain := "www.google.com"
+	proxy := NewHttpProxySrv("127.0.0.1:5001", nil)
+	proxy.RegistSite(domain, "roundrobin", "http").GetBalancer(domain)
+	balancerDo, err := proxy.GetBalancer(domain)
+	if err != nil {
+		t.Error("NewHttpProxySrv loadType have an error #0")
+	}
+
+	if _, ok := balancerDo.(*balancer.RoundRobinLoad); ok == false {
 		t.Error("NewHttpProxySrv loadType have an error #1")
 	}
+
 	proxy.ResetCustomHeader(map[string]string{"X-LIBRA": "the smart ReverseProxy"})
 
 	header, ok := proxy.customHeader["X-LIBRA"]
@@ -39,20 +46,18 @@ func TestProxySrvFun(t *testing.T) {
 		t.Error("ResetCustomHeader func have an error #2")
 	}
 
-	proxy.ChangeLoadType("wroundrobin")
-	if _, ok := proxy.balancer.(*balancer.WRoundRobinLoad); ok == false {
+	proxy.ChangeLoadType(domain, "wroundrobin")
+	balancerDo, _ = proxy.GetBalancer(domain)
+	if _, ok := balancerDo.(*balancer.WRoundRobinLoad); ok == false {
 		t.Error("NewHttpProxySrv ChangeLoadType have an error #3")
 	}
 
-	proxy.ChangeLoadType("random")
-	if _, ok := proxy.balancer.(*balancer.RandomLoad); ok == false {
+	proxy.ChangeLoadType(domain, "random")
+	balancerDo, _ = proxy.GetBalancer(domain)
+	if _, ok := balancerDo.(*balancer.RandomLoad); ok == false {
 		t.Error("NewHttpProxySrv ChangeLoadType have an error #4")
 	}
 
-	b := proxy.GetBalancer()
-	if b != proxy.balancer {
-		t.Error("NewHttpProxySrv GetBalancer have an error #5")
-	}
 }
 
 func TestReverseProxySrv(t *testing.T) {
@@ -61,34 +66,36 @@ func TestReverseProxySrv(t *testing.T) {
 	}))
 	defer targetHttpServer.Close()
 
-	proxy := NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
-	reverseProxy := proxy.dynamicReverseProxy()
+	gateway := "127.0.0.1:5002"
+	proxy := NewHttpProxySrv(gateway, nil)
 	proxy.ResetCustomHeader(map[string]string{"httptest": "01023"})
-	ts := httptest.NewServer(proxy.httpMiddleware(reverseProxy))
-	defer ts.Close()
+	proxy.RegistSite(gateway, "random", "http")
+	go proxy.Start()
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", ts.URL, strings.NewReader(""))
+	req, err := http.NewRequest("GET", "http://"+gateway, strings.NewReader(""))
 	if err != nil {
 		t.Error(err)
 	}
-	req.Header.Del("User-Agent")
-
 	res, err := client.Do(req)
 	defer res.Body.Close()
 
 	if res.StatusCode != 500 {
 		t.Error("ReverseProxySrv have an error #1")
 	}
+
 	testHeader := res.Header.Get("httptest")
 	if testHeader != "01023" {
 		t.Error("ReverseProxySrv have an error #2")
 	}
 
-	tsUrl, _ := url.Parse(ts.URL)
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
-	proxy.balancer.AddAddr(tsUrl.Host, targetHttpUrl.Host, 0)
-	res, err = http.Get(ts.URL + "?abc=123")
+
+	balancerDo, _ := proxy.GetBalancer(gateway)
+	balancerDo.AddAddr(targetHttpUrl.Host, 0)
+
+	res, err = http.Get("http://" + gateway + "?abc=123")
+
 	if err != nil {
 		t.Error(err)
 	}
@@ -109,6 +116,8 @@ func TestReverseProxySrv(t *testing.T) {
 	if string(greeting) != "testing ReverseProxySrv" {
 		t.Error("ReverseProxySrv have an error #5")
 	}
+
+	time.Sleep(2 * time.Second)
 }
 
 func TestReverseProxySrvUnStart(t *testing.T) {
@@ -117,20 +126,22 @@ func TestReverseProxySrvUnStart(t *testing.T) {
 	}))
 	defer targetHttpServer.Close()
 
-	proxy := NewHttpProxySrv("127.0.0.1:5001", "roundrobin", nil)
-	reverseProxy := proxy.dynamicReverseProxy()
+	gateway := "127.0.0.1:5005"
+	proxy := NewHttpProxySrv(gateway, nil)
+	proxy.ResetCustomHeader(map[string]string{"httptest": "01023"})
+	proxy.RegistSite(gateway, "random", "http")
+	go proxy.Start()
 
-	ts := httptest.NewServer(proxy.httpMiddleware(reverseProxy))
-	defer ts.Close()
-
-	tsUrl, _ := url.Parse(ts.URL)
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
-	proxy.balancer.AddAddr(tsUrl.Host, targetHttpUrl.Host, 0)
-	res, _ := http.Get(ts.URL)
+
+	balancerDo, _ := proxy.GetBalancer(gateway)
+	balancerDo.AddAddr(targetHttpUrl.Host, 0)
+	res, _ := http.Get("http://" + gateway)
 
 	if res.StatusCode != 502 {
 		t.Error("ReverseProxySrv have an error(UnStart) #1")
 	}
+	time.Sleep(1 * time.Second)
 }
 
 func TestReverseProxySrvNotFound(t *testing.T) {
@@ -140,42 +151,18 @@ func TestReverseProxySrvNotFound(t *testing.T) {
 	}))
 	defer targetHttpServer.Close()
 
-	proxy := NewHttpProxySrv("127.0.0.1:5002", "roundrobin", nil)
-	reverseProxy := proxy.dynamicReverseProxy()
+	gateway := "127.0.0.1:5006"
+	proxy := NewHttpProxySrv(gateway, nil)
+	proxy.RegistSite(gateway, "random", "http")
+	go proxy.Start()
 
-	ts := httptest.NewServer(proxy.httpMiddleware(reverseProxy))
-	defer ts.Close()
-
-	tsUrl, _ := url.Parse(ts.URL)
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
-	proxy.balancer.AddAddr(tsUrl.Host, targetHttpUrl.Host, 0)
-	res, _ := http.Get(ts.URL)
+	balancerDo, _ := proxy.GetBalancer(gateway)
+	balancerDo.AddAddr(targetHttpUrl.Host, 0)
+	res, _ := http.Get("http://" + gateway)
 
 	if res.StatusCode != 404 {
 		t.Error("ReverseProxySrv have an error(NotFound) #1")
-	}
-}
-
-func TestGetBalancerByLoadType(t *testing.T) {
-
-	b := getBalancerByLoadType("xxx")
-	if _, ok := b.(*balancer.RandomLoad); ok == false {
-		t.Error("getBalancerByLoadType func have an error #1")
-	}
-
-	b = getBalancerByLoadType("random")
-	if _, ok := b.(*balancer.RandomLoad); ok == false {
-		t.Error("getBalancerByLoadType func have an error #2")
-	}
-
-	b = getBalancerByLoadType("roundrobin")
-	if _, ok := b.(*balancer.RoundRobinLoad); ok == false {
-		t.Error("getBalancerByLoadType func have an error #2")
-	}
-
-	b = getBalancerByLoadType("wroundrobin")
-	if _, ok := b.(*balancer.WRoundRobinLoad); ok == false {
-		t.Error("getBalancerByLoadType func have an error #2")
 	}
 }
 

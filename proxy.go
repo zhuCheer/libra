@@ -18,10 +18,7 @@ import (
 // ProxySrv Proxy server node struct
 type ProxySrv struct {
 	ProxyAddr    string
-	Scheme       string
 	customHeader map[string]string
-	loadType     string
-	balancer     balancer.Balancer
 }
 
 // Common variable.
@@ -33,25 +30,19 @@ var (
 )
 
 // NewHttpProxySrv new http reverse proxy
-func NewHttpProxySrv(addr string, loadType string, header map[string]string) *ProxySrv {
+func NewHttpProxySrv(addr string, header map[string]string) *ProxySrv {
 	if header == nil {
 		header = map[string]string{}
 	}
 
 	return &ProxySrv{
 		ProxyAddr:    addr,
-		Scheme:       "http",
 		customHeader: header,
-		balancer:     getBalancerByLoadType(loadType),
-		loadType:     loadType,
 	}
 }
 
 // Start http proxy server
 func (p *ProxySrv) Start() error {
-	if p.Scheme == "" {
-		p.Scheme = "http"
-	}
 
 	proxyHttpMux := http.NewServeMux()
 	Logger.Printf("start proxy server bind " + p.ProxyAddr)
@@ -65,37 +56,44 @@ func (p *ProxySrv) Start() error {
 	panic(err)
 }
 
-// GetBalancer get an balancer point
-func (p *ProxySrv) GetBalancer() balancer.Balancer {
+// RegistSite  register a site
+func (p *ProxySrv) RegistSite(domain, loadType, scheme string) *ProxySrv {
+	balancer.RegistTargetNoAddr(domain, loadType, scheme)
+	return p
+}
 
-	return p.balancer
+// GetBalancer get an balancer point
+func (p *ProxySrv) GetBalancer(domain string) (balancer.Balancer, error) {
+	info, err := balancer.GetSiteInfo(domain)
+
+	return info.Balancer, err
+}
+
+// AddAddr add addr quick func
+func (p *ProxySrv) AddAddr(domain string, addr string, weight uint32) {
+	info, err := balancer.GetSiteInfo(domain)
+	if err == nil {
+		info.Balancer.AddAddr(addr, weight)
+	}
+}
+
+// AddAddr add addr quick func
+func (p *ProxySrv) DelAddr(domain string, addr string, weight uint32) {
+	info, err := balancer.GetSiteInfo(domain)
+	if err == nil {
+		info.Balancer.DelAddr(addr)
+	}
 }
 
 // ChangeLoadType change balancer loadType
-func (p *ProxySrv) ChangeLoadType(loadType string) {
-	b := getBalancerByLoadType(loadType)
-	p.balancer = b
+func (p *ProxySrv) ChangeLoadType(domain, loadType string) {
+	balancer.ChangeLoadType(domain, loadType)
 }
 
 // ResetCustomHeader reset custom header
 func (p *ProxySrv) ResetCustomHeader(header map[string]string) {
 	p.customHeader = map[string]string{}
 	p.customHeader = header
-}
-
-// getBalancerByLoadType get balancer by lodeType
-func getBalancerByLoadType(loadType string) balancer.Balancer {
-	b := balancer.NewRandomLoad()
-	switch loadType {
-	case "random":
-		b = balancer.NewRandomLoad()
-	case "roundrobin":
-		b = balancer.NewRoundRobinLoad()
-	case "wroundrobin":
-		b = balancer.NewWRoundRobinLoad()
-	}
-
-	return b
 }
 
 // httpMiddleware http middleware set some header
@@ -114,16 +112,25 @@ func (p *ProxySrv) httpMiddleware(handler *httputil.ReverseProxy) http.Handler {
 // in this function proxy server knows where to forward to
 // if the target is a error node, proxy will forward to a default error page in local address.
 func (p *ProxySrv) dynamicDirector(req *http.Request) {
-	proxyTarget, err := p.balancer.GetOne(req.Host)
-	var target *url.URL
-	if err == nil && proxyTarget != nil {
-		target, err = url.Parse(p.Scheme + "://" + proxyTarget.Addr)
-	}
+	siteInfo, err := balancer.GetSiteInfo(req.Host)
 
-	// if err not nil wirte an err in header
-	if err != nil {
-		req.Header.Set(errorHeader, err.Error())
-	} else {
+	var target *url.URL
+	var proxyTarget *balancer.ProxyTarget
+
+	for {
+		if err != nil {
+			req.Header.Set(errorHeader, err.Error())
+			break
+		}
+		proxyTarget, err = siteInfo.Balancer.GetOne()
+
+		// if err not nil wirte an err in header
+		if err != nil {
+			req.Header.Set(errorHeader, err.Error())
+			break
+		}
+
+		target, err = url.Parse(siteInfo.Scheme + "://" + proxyTarget.Addr)
 		targetQuery := target.RawQuery
 		//req.Host = target.Host
 		req.URL.Host = target.Host
@@ -138,8 +145,11 @@ func (p *ProxySrv) dynamicDirector(req *http.Request) {
 			// explicitly disable User-Agent so it's not set to default value
 			req.Header.Set("User-Agent", "")
 		}
+
+		break
 	}
-	req.URL.Scheme = p.Scheme
+
+	req.URL.Scheme = siteInfo.Scheme
 	Logger.Printf("proxy to " + req.URL.String())
 }
 

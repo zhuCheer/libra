@@ -5,14 +5,14 @@ import (
 )
 
 func TestRandomLoad(t *testing.T) {
-	var balancer = NewRandomLoad()
-	target, err := balancer.GetOne("name")
+	var balancer = NewRandomLoad("name")
+	target, err := balancer.GetOne()
 	if err == nil {
 		t.Error("RandomLoad func have an error #1")
 	}
 
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: "www.google.com",
 		Items: []OriginItem{
 			{"192.168.1.100", 80},
@@ -27,9 +27,10 @@ func TestRandomLoad(t *testing.T) {
 		},
 	})
 
+	balancer = NewRandomLoad("www.google.com")
 	var addrMap map[string]string = map[string]string{}
 	for i := 0; i < 1000; i++ {
-		target, err = balancer.GetOne("www.google.com")
+		target, err = balancer.GetOne()
 		if err != nil {
 			t.Error("RandomLoad func have an error #2")
 		}
@@ -42,10 +43,11 @@ func TestRandomLoad(t *testing.T) {
 }
 
 func TestAddAddrRandomLoad(t *testing.T) {
-	var balancer = NewRandomLoad()
 	domain := "www.google.com"
+	var balancer = NewRandomLoad(domain)
+
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: domain,
 		Items: []OriginItem{
 			{"192.168.1.100", 80},
@@ -55,8 +57,8 @@ func TestAddAddrRandomLoad(t *testing.T) {
 		t.Error("AddAddr func have an error #1")
 	}
 
-	balancer.AddAddr(domain, "192.168.1.101", 0)
-	balancer.AddAddr(domain, "192.168.1.102", 0)
+	balancer.AddAddr("192.168.1.101", 0)
+	balancer.AddAddr("192.168.1.102", 0)
 
 	if len(registryMap[domain].Items) != 3 {
 		t.Error("AddAddr func have an error #2")
@@ -65,10 +67,10 @@ func TestAddAddrRandomLoad(t *testing.T) {
 }
 
 func TestDelAddrRandomLoad(t *testing.T) {
-	var balancer = NewRandomLoad()
 	domain := "www.google.com"
+	var balancer = NewRandomLoad(domain)
 	registryMap = nil
-	NewTarget(RegistNode{
+	newTarget(RegistNode{
 		Domain: domain,
 		Items: []OriginItem{
 			{"192.168.1.100", 80},
@@ -77,7 +79,7 @@ func TestDelAddrRandomLoad(t *testing.T) {
 		},
 	})
 
-	balancer.DelAddr(domain, "192.168.1.101")
+	balancer.DelAddr("192.168.1.101")
 
 	if len(registryMap[domain].Items) != 2 {
 		t.Error("DelAddr func have an error #1")
