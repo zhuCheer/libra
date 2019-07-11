@@ -29,13 +29,13 @@ func TestProxyStart(t *testing.T) {
 func TestProxySrvFun(t *testing.T) {
 	domain := "www.google.com"
 	proxy := NewHttpProxySrv("127.0.0.1:5001", nil)
-	proxy.RegistSite(domain, "roundrobin", "http").GetBalancer(domain)
-	balancerDo, err := proxy.GetBalancer(domain)
+	proxy.RegistSite(domain, "roundrobin", "http")
+	siteInfo, err := proxy.GetSiteInfo(domain)
 	if err != nil {
 		t.Error("NewHttpProxySrv loadType have an error #0")
 	}
 
-	if _, ok := balancerDo.(*balancer.RoundRobinLoad); ok == false {
+	if _, ok := siteInfo.Balancer.(*balancer.RoundRobinLoad); ok == false {
 		t.Error("NewHttpProxySrv loadType have an error #1")
 	}
 
@@ -47,14 +47,12 @@ func TestProxySrvFun(t *testing.T) {
 	}
 
 	proxy.ChangeLoadType(domain, "wroundrobin")
-	balancerDo, _ = proxy.GetBalancer(domain)
-	if _, ok := balancerDo.(*balancer.WRoundRobinLoad); ok == false {
+	if _, ok := siteInfo.Balancer.(*balancer.WRoundRobinLoad); ok == false {
 		t.Error("NewHttpProxySrv ChangeLoadType have an error #3")
 	}
 
 	proxy.ChangeLoadType(domain, "random")
-	balancerDo, _ = proxy.GetBalancer(domain)
-	if _, ok := balancerDo.(*balancer.RandomLoad); ok == false {
+	if _, ok := siteInfo.Balancer.(*balancer.RandomLoad); ok == false {
 		t.Error("NewHttpProxySrv ChangeLoadType have an error #4")
 	}
 
@@ -91,8 +89,8 @@ func TestReverseProxySrv(t *testing.T) {
 
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
 
-	balancerDo, _ := proxy.GetBalancer(gateway)
-	balancerDo.AddAddr(targetHttpUrl.Host, 0)
+	siteInfo, _ := proxy.GetSiteInfo(gateway)
+	siteInfo.Balancer.AddAddr(targetHttpUrl.Host, 0)
 
 	res, err = http.Get("http://" + gateway + "?abc=123")
 
@@ -134,8 +132,8 @@ func TestReverseProxySrvUnStart(t *testing.T) {
 
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
 
-	balancerDo, _ := proxy.GetBalancer(gateway)
-	balancerDo.AddAddr(targetHttpUrl.Host, 0)
+	siteInfo, _ := proxy.GetSiteInfo(gateway)
+	siteInfo.Balancer.AddAddr(targetHttpUrl.Host, 0)
 	res, _ := http.Get("http://" + gateway)
 
 	if res.StatusCode != 502 {
@@ -157,12 +155,31 @@ func TestReverseProxySrvNotFound(t *testing.T) {
 	go proxy.Start()
 
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
-	balancerDo, _ := proxy.GetBalancer(gateway)
-	balancerDo.AddAddr(targetHttpUrl.Host, 0)
+	siteInfo, _ := proxy.GetSiteInfo(gateway)
+	siteInfo.Balancer.AddAddr(targetHttpUrl.Host, 0)
 	res, _ := http.Get("http://" + gateway)
 
 	if res.StatusCode != 404 {
 		t.Error("ReverseProxySrv have an error(NotFound) #1")
+	}
+}
+
+func TestAddDelAddr(t *testing.T) {
+	gateway := "127.0.0.1:5005"
+	proxy := NewHttpProxySrv(gateway, nil).RegistSite(gateway, "random", "http")
+	proxy.AddAddr(gateway, "192.168.1.100", 0)
+	proxy.AddAddr(gateway, "192.168.1.100", 0)
+	proxy.AddAddr(gateway, "192.168.1.101", 0)
+
+	siteInfo, _ := proxy.GetSiteInfo(gateway)
+	if len(siteInfo.Items) != 2 {
+		t.Error("proxy AddAddr have an error #1")
+	}
+
+	proxy.DelAddr(gateway, "192.168.1.100")
+
+	if len(siteInfo.Items) != 1 {
+		t.Error("proxy DelAddr have an error #2")
 	}
 }
 

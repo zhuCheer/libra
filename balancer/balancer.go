@@ -104,9 +104,10 @@ func GetSiteInfo(domain string) (*RegistNode, error) {
 	info, err := getTarget(domain)
 	if err != nil {
 		log.Printf("GetSiteInfo func have error %v", err)
+		return nil, err
 	}
 
-	return info, err
+	return info, nil
 }
 
 // getTarget get a Target server

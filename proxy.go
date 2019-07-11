@@ -62,11 +62,11 @@ func (p *ProxySrv) RegistSite(domain, loadType, scheme string) *ProxySrv {
 	return p
 }
 
-// GetBalancer get an balancer point
-func (p *ProxySrv) GetBalancer(domain string) (balancer.Balancer, error) {
+// GetSiteInfo get balancer GetSiteInfo func
+func (p *ProxySrv) GetSiteInfo(domain string) (*balancer.RegistNode, error) {
 	info, err := balancer.GetSiteInfo(domain)
 
-	return info.Balancer, err
+	return info, err
 }
 
 // AddAddr add addr quick func
@@ -78,7 +78,7 @@ func (p *ProxySrv) AddAddr(domain string, addr string, weight uint32) {
 }
 
 // AddAddr add addr quick func
-func (p *ProxySrv) DelAddr(domain string, addr string, weight uint32) {
+func (p *ProxySrv) DelAddr(domain string, addr string) {
 	info, err := balancer.GetSiteInfo(domain)
 	if err == nil {
 		info.Balancer.DelAddr(addr)
