@@ -178,6 +178,29 @@ func TestAddDelAddr(t *testing.T) {
 	}
 }
 
+func TestGetSiteInfo(t *testing.T) {
+	gateway := "127.0.0.1:5006"
+	domain := "www.google.cn"
+	proxy := NewHttpProxySrv(gateway, nil)
+	proxy.RegistSite(domain, "random", "http")
+
+	info1, _ := proxy.GetSiteInfo(domain)
+	info2, _ := balancer.GetSiteInfo(domain)
+	if info1.Domain != info2.Domain {
+		t.Error("proxy GetSiteInfo have an error #1")
+	}
+	if _, ok := info1.Balancer.(*balancer.RandomLoad); !ok {
+		t.Error("proxy.GetSiteInfo have an error #2")
+	}
+	if _, ok := info2.Balancer.(*balancer.RandomLoad); !ok {
+		t.Error("balancer.GetSiteInfo have an error #3")
+	}
+	if info1.Balancer != info1.Balancer {
+		t.Error("balancer.GetSiteInfo have an error #4")
+	}
+
+}
+
 func TestSingleJoiningSlash(t *testing.T) {
 	target, _ := url.Parse("http://192.168.1.100/")
 	path := singleJoiningSlash(target.Path, "/")
