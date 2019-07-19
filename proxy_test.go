@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strings"
 	"testing"
 	"time"
 )
@@ -62,19 +61,22 @@ func TestReverseProxySrv(t *testing.T) {
 	}))
 	defer targetHttpServer.Close()
 
+	notfoundHttpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(404)
+		fmt.Fprint(w, "testing ReverseProxySrv NotFound")
+	}))
+	defer notfoundHttpServer.Close()
+
 	gateway := "127.0.0.1:5002"
 	proxy := NewHttpProxySrv(gateway, nil)
 	proxy.ResetCustomHeader(map[string]string{"httptest": "01023"})
 	proxy.RegistSite(gateway, "random", "http")
 	go proxy.Start()
 
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://"+gateway, strings.NewReader(""))
+	res, err := http.Get("http://" + gateway)
 	if err != nil {
 		t.Error(err)
 	}
-	res, err := client.Do(req)
-	defer res.Body.Close()
 
 	if res.StatusCode != 500 {
 		t.Error("ReverseProxySrv have an error #1")
@@ -87,7 +89,6 @@ func TestReverseProxySrv(t *testing.T) {
 
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
 	proxy.AddAddr(gateway, targetHttpUrl.Host, 0)
-
 	res, err = http.Get("http://" + gateway + "?abc=123")
 
 	if err != nil {
@@ -109,6 +110,16 @@ func TestReverseProxySrv(t *testing.T) {
 	}
 	if string(greeting) != "testing ReverseProxySrv" {
 		t.Error("ReverseProxySrv have an error #5")
+	}
+
+	// testing 404 not found
+	notfoundUrl, _ := url.Parse(notfoundHttpServer.URL)
+	proxy.DelAddr(gateway, targetHttpUrl.Host)
+	proxy.AddAddr(gateway, notfoundUrl.Host, 1)
+	res, _ = http.Get("http://" + gateway)
+
+	if res.StatusCode != 404 {
+		t.Error("ReverseProxySrv have an error(NotFound) #6")
 	}
 }
 
@@ -135,27 +146,6 @@ func TestReverseProxySrvUnStart(t *testing.T) {
 	time.Sleep(1 * time.Second)
 }
 
-func TestReverseProxySrvNotFound(t *testing.T) {
-	targetHttpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(404)
-		fmt.Fprint(w, "testing ReverseProxySrv NotFound")
-	}))
-	defer targetHttpServer.Close()
-
-	gateway := "127.0.0.1:5006"
-	proxy := NewHttpProxySrv(gateway, nil)
-	proxy.RegistSite(gateway, "random", "http")
-	go proxy.Start()
-
-	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
-	proxy.AddAddr(gateway, targetHttpUrl.Host, 1)
-	res, _ := http.Get("http://" + gateway)
-
-	if res.StatusCode != 404 {
-		t.Error("ReverseProxySrv have an error(NotFound) #1")
-	}
-}
-
 func TestAddDelAddr(t *testing.T) {
 	gateway := "127.0.0.1:5005"
 	domain := "www.google.cn"
@@ -179,7 +169,7 @@ func TestAddDelAddr(t *testing.T) {
 }
 
 func TestGetSiteInfo(t *testing.T) {
-	gateway := "127.0.0.1:5006"
+	gateway := "127.0.0.1:5009"
 	domain := "www.google.cn"
 	proxy := NewHttpProxySrv(gateway, nil)
 	proxy.RegistSite(domain, "random", "http")
