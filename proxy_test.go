@@ -166,19 +166,22 @@ func TestReverseProxySrvNotFound(t *testing.T) {
 
 func TestAddDelAddr(t *testing.T) {
 	gateway := "127.0.0.1:5005"
-	proxy := NewHttpProxySrv(gateway, nil).RegistSite(gateway, "random", "http")
-	proxy.AddAddr(gateway, "192.168.1.100", 0)
-	proxy.AddAddr(gateway, "192.168.1.100", 0)
-	proxy.AddAddr(gateway, "192.168.1.101", 0)
+	domain := "www.google.cn"
+	proxy := NewHttpProxySrv(gateway, nil)
+	proxy.RegistSite(domain, "random", "http").
+		AddAddr(domain, "192.168.1.100", 0).
+		AddAddr(domain, "192.168.1.100:8080", 0).
+		AddAddr(domain, "192.168.1.100", 0).
+		AddAddr(domain, "192.168.1.101", 0)
 
-	siteInfo, _ := proxy.GetSiteInfo(gateway)
-	if len(siteInfo.Items) != 2 {
+	siteInfo, _ := proxy.GetSiteInfo(domain)
+	if len(siteInfo.Items) != 3 {
 		t.Error("proxy AddAddr have an error #1")
 	}
+	proxy.DelAddr(domain, "192.168.1.105")
+	proxy.DelAddr(domain, "192.168.1.100")
 
-	proxy.DelAddr(gateway, "192.168.1.100")
-
-	if len(siteInfo.Items) != 1 {
+	if len(siteInfo.Items) != 2 {
 		t.Error("proxy DelAddr have an error #2")
 	}
 }

@@ -38,14 +38,15 @@ Now,you can open browser to `http://127.0.0.1:5000`,you will see the reverse pro
 import "github.com/zhuCheer/libra"
 
     
-// regist a reverse proxy，input three params bind ip:port, balancer algorithm, custom response header
+// create a new reverse proxy，input three params bind ip:port, custom response header;
+// then register a site, fill in domain name, balancer algorithm and origin url scheme;
 // it has three balancer algorithm random，roundrobin，wroundrobin(round robin with weight)
-srv := libra.NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
-
+var srv = libra.NewHttpProxySrv("127.0.0.1:5000", nil)
+srv.RegistSite("www.yourappdomain.com", "roundrobin", "http")
 
 // add target domain and ip:port
-srv.GetBalancer().AddAddr("www.yourappdomain.com", "127.0.0.1:5001", 1)
-srv.GetBalancer().AddAddr("www.yourappdomain.com", "127.0.0.1:5002", 1)
+srv.AddAddr("www.yourappdomain.com", "127.0.0.1:5001", 1)
+srv.AddAddr("www.yourappdomain.com", "127.0.0.1:5001", 2)
 
 
 // start reverse proxy server
@@ -68,21 +69,22 @@ srv.Start()
 
 ```
 import "github.com/zhuCheer/libra"
-srv := libra.NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
+var srv = libra.NewHttpProxySrv("127.0.0.1:5000", nil)
+srv.RegistSite("www.yourappdomain.com", "roundrobin", "http")
 
 
 // set response header
 srv.ResetCustomHeader(map[string]string{"X-LIBRA": "the smart ReverseProxy"})
 
 // change balance algorithm
-srv.ChangeLoadType("random")
+srv.ChangeLoadType("www.yourappdomain.com", "random")
 
 
 // add origin server addr, dynamic change without restarting
-srv.GetBalancer().AddAddr("www.yourappdomain.com","192.168.1.100:8081", 1)
+srv.AddAddr("www.yourappdomain.com","192.168.1.100:8081", 1)
 
 // delete origin server addr, dynamic change without restarting
-srv.GetBalancer().DelAddr("www.yourappdomain.com","192.168.1.100:8081")
+srv.DelAddr("www.yourappdomain.com","192.168.1.100:8081")
 
 ```
 

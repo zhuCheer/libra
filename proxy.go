@@ -70,11 +70,12 @@ func (p *ProxySrv) GetSiteInfo(domain string) (*balancer.RegistNode, error) {
 }
 
 // AddAddr add addr quick func
-func (p *ProxySrv) AddAddr(domain string, addr string, weight uint32) {
+func (p *ProxySrv) AddAddr(domain string, addr string, weight uint32) *ProxySrv {
 	info, err := balancer.GetSiteInfo(domain)
 	if err == nil {
 		info.Balancer.AddAddr(addr, weight)
 	}
+	return p
 }
 
 // AddAddr add addr quick func

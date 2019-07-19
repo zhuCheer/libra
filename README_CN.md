@@ -39,14 +39,15 @@
 import "github.com/zhuCheer/libra"
 
     
-// 注册一个反向代理服务器，反代服务器访问的 ip 和端口，负载均衡类型，和自定义响应头 三个参数
+// 注册一个反向代理服务器，反代服务器访问的 ip 端口，和自定义响应头两个个参数
+// 然后注册一个站点，包括域名，负载均衡类型，请求源站类型（http/https）
 // 负载均衡类型目前有三种可选 random:随机，roundrobin:轮询，wroundrobin:带权轮询
-srv := libra.NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
-
+var srv = libra.NewHttpProxySrv("127.0.0.1:5000", nil)
+srv.RegistSite("www.yourappdomain.com", "roundrobin", "http")
 
 // 添加代理目标的域名和 ip 地址端口
-srv.GetBalancer().AddAddr("www.yourappdomain.com", "127.0.0.1:5001", 1)
-srv.GetBalancer().AddAddr("www.yourappdomain.com", "127.0.0.1:5002", 1)
+srv.AddAddr("www.yourappdomain.com", "127.0.0.1:5001", 1)
+srv.AddAddr("www.yourappdomain.com", "127.0.0.1:5001", 2)
 
 
 // 启动反向代理服务
@@ -65,20 +66,20 @@ srv.Start()
 
 ```
 import "github.com/zhuCheer/libra"
-srv := libra.NewHttpProxySrv("127.0.0.1:5000", "roundrobin", nil)
-
+var srv = libra.NewHttpProxySrv("127.0.0.1:5000", nil)
+srv.RegistSite("www.yourappdomain.com", "roundrobin", "http")
 
 // 设置响应头
 srv.ResetCustomHeader(map[string]string{"X-LIBRA": "the smart ReverseProxy"})
 
-// 切换负载均衡类型
-srv.ChangeLoadType("random")
+// 切换指定站点的负载均衡类型
+srv.ChangeLoadType("www.yourappdomain.com", "random")
 
 
 // 添加目标服务器节点信息，添加后即生效，无需重启
-srv.GetBalancer().AddAddr("www.yourappdomain.com","192.168.1.100:8081", 1)
+srv.AddAddr("www.yourappdomain.com","192.168.1.100:8081", 1)
 
 // 删除目标服务器节点信息，添加后即生效，无需重启
-srv.GetBalancer().DelAddr("www.yourappdomain.com","192.168.1.100:8081")
+srv.DelAddr("www.yourappdomain.com","192.168.1.100:8081")
 
 ```
