@@ -123,29 +123,6 @@ func TestReverseProxySrv(t *testing.T) {
 	}
 }
 
-func TestReverseProxySrvUnStart(t *testing.T) {
-	targetHttpServer := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "testing ReverseProxySrvUnStart")
-	}))
-	defer targetHttpServer.Close()
-
-	gateway := "127.0.0.1:5005"
-	proxy := NewHttpProxySrv(gateway, nil)
-	proxy.ResetCustomHeader(map[string]string{"httptest": "01023"})
-	proxy.RegistSite(gateway, "random", "http")
-	go proxy.Start()
-
-	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
-
-	proxy.AddAddr(gateway, targetHttpUrl.Host, 0)
-	res, _ := http.Get("http://" + gateway)
-
-	if res.StatusCode != 502 {
-		t.Error("ReverseProxySrv have an error(UnStart) #1")
-	}
-	time.Sleep(1 * time.Second)
-}
-
 func TestAddDelAddr(t *testing.T) {
 	gateway := "127.0.0.1:5005"
 	domain := "www.google.cn"
