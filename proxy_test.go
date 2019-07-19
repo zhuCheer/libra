@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
-	"time"
 )
 
 func TestProxyStart(t *testing.T) {
