@@ -155,8 +155,7 @@ func TestReverseProxySrvNotFound(t *testing.T) {
 	go proxy.Start()
 
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
-	siteInfo, _ := proxy.GetSiteInfo(gateway)
-	siteInfo.Balancer.AddAddr(targetHttpUrl.Host, 0)
+	proxy.AddAddr(gateway, targetHttpUrl.Host, 1)
 	res, _ := http.Get("http://" + gateway)
 
 	if res.StatusCode != 404 {
