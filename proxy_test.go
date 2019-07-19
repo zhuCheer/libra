@@ -3,7 +3,6 @@ package libra
 import (
 	"fmt"
 	"github.com/zhuCheer/libra/balancer"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -71,56 +70,7 @@ func TestReverseProxySrv(t *testing.T) {
 	proxy := NewHttpProxySrv(gateway, nil)
 	proxy.ResetCustomHeader(map[string]string{"httptest": "01023"})
 	proxy.RegistSite(gateway, "random", "http")
-	go proxy.Start()
 
-	res, err := http.Get("http://" + gateway)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if res.StatusCode != 500 {
-		t.Error("ReverseProxySrv have an error #1")
-	}
-
-	testHeader := res.Header.Get("httptest")
-	if testHeader != "01023" {
-		t.Error("ReverseProxySrv have an error #2")
-	}
-
-	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
-	proxy.AddAddr(gateway, targetHttpUrl.Host, 0)
-	res, err = http.Get("http://" + gateway + "?abc=123")
-
-	if err != nil {
-		t.Error(err)
-	}
-	if res.StatusCode != 200 {
-		t.Error("ReverseProxySrv have an error #3")
-	}
-
-	if res.Request.URL.RawQuery != "abc=123" {
-		t.Error("ReverseProxySrv have an error #4")
-	}
-
-	greeting, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-
-	if err != nil {
-		t.Error(err)
-	}
-	if string(greeting) != "testing ReverseProxySrv" {
-		t.Error("ReverseProxySrv have an error #5")
-	}
-
-	// testing 404 not found
-	notfoundUrl, _ := url.Parse(notfoundHttpServer.URL)
-	proxy.DelAddr(gateway, targetHttpUrl.Host)
-	proxy.AddAddr(gateway, notfoundUrl.Host, 1)
-	res, _ = http.Get("http://" + gateway)
-
-	if res.StatusCode != 404 {
-		t.Error("ReverseProxySrv have an error(NotFound) #6")
-	}
 }
 
 func TestReverseProxySrvUnStart(t *testing.T) {
