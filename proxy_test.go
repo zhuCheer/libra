@@ -93,17 +93,26 @@ func TestReverseProxySrv(t *testing.T) {
 
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
 	proxy.AddAddr(gateway, targetHttpUrl.Host, 0)
-	res, err = http.Get("http://" + gateway + "?abc=123")
 
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", "http://"+gateway, nil)
+	req.Host = "www.google.cn"
+	res, _ = client.Do(req)
+	defer res.Body.Close()
+	if res.Header.Get(errorHeader) != "the proxy srv not found" {
+		t.Error("ReverseProxySrv have an error #2.1")
+	}
+
+	res, err = http.Get("http://" + gateway + "?abc=123")
 	if err != nil {
 		t.Error(err)
 	}
 	if res.StatusCode != 200 {
-		t.Error("ReverseProxySrv have an error #3")
+		t.Error("ReverseProxySrv have an error #4")
 	}
 
 	if res.Request.URL.RawQuery != "abc=123" {
-		t.Error("ReverseProxySrv have an error #4")
+		t.Error("ReverseProxySrv have an error #5")
 	}
 
 	greeting, err := ioutil.ReadAll(res.Body)
@@ -113,7 +122,7 @@ func TestReverseProxySrv(t *testing.T) {
 		t.Error(err)
 	}
 	if string(greeting) != "testing ReverseProxySrv" {
-		t.Error("ReverseProxySrv have an error #5")
+		t.Error("ReverseProxySrv have an error #6")
 	}
 
 	// testing 404 not found
@@ -123,7 +132,7 @@ func TestReverseProxySrv(t *testing.T) {
 	res, _ = http.Get("http://" + gateway)
 
 	if res.StatusCode != 404 {
-		t.Error("ReverseProxySrv have an error(NotFound) #6")
+		t.Error("ReverseProxySrv have an error(NotFound) #7")
 	}
 
 	// testing 502 server not start
@@ -133,7 +142,7 @@ func TestReverseProxySrv(t *testing.T) {
 	res, _ = http.Get("http://" + gateway)
 
 	if res.StatusCode != 502 {
-		t.Error("ReverseProxySrv have an error(Not Start) #7")
+		t.Error("ReverseProxySrv have an error(Not Start) #8")
 	}
 }
 

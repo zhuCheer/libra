@@ -58,6 +58,9 @@ func getDefaultErrorPage(statusCode int, msg string, req *http.Request) (resp *h
 func getResponsePage(status int, msg string, req *http.Request) *http.Response {
 	var resp *http.Response
 
+	header := http.Header{}
+	header.Add(errorHeader, req.Header.Get(errorHeader))
+
 	b, _ := ioutil.ReadAll(bytes.NewReader([]byte(msg)))
 	body := ioutil.NopCloser(bytes.NewReader(b))
 	resp = &http.Response{
@@ -66,7 +69,7 @@ func getResponsePage(status int, msg string, req *http.Request) *http.Response {
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,
 		ProtoMinor: 1,
-		Header:     http.Header{},
+		Header:     header,
 		Body:       body,
 		Request:    req,
 	}

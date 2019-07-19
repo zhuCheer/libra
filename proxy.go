@@ -132,6 +132,11 @@ func (p *ProxySrv) dynamicDirector(req *http.Request) {
 		}
 
 		target, err = url.Parse(siteInfo.Scheme + "://" + proxyTarget.Addr)
+		if err != nil {
+			req.Header.Set(errorHeader, err.Error())
+			break
+		}
+
 		targetQuery := target.RawQuery
 		//req.Host = target.Host
 		req.URL.Host = target.Host
@@ -150,7 +155,10 @@ func (p *ProxySrv) dynamicDirector(req *http.Request) {
 		break
 	}
 
-	req.URL.Scheme = siteInfo.Scheme
+	if err == nil {
+		req.URL.Scheme = siteInfo.Scheme
+	}
+
 	Logger.Printf("proxy to " + req.URL.String())
 }
 
