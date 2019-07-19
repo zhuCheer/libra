@@ -88,9 +88,7 @@ func TestReverseProxySrv(t *testing.T) {
 	}
 
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
-
-	siteInfo, _ := proxy.GetSiteInfo(gateway)
-	siteInfo.Balancer.AddAddr(targetHttpUrl.Host, 0)
+	proxy.AddAddr(gateway, targetHttpUrl.Host, 0)
 
 	res, err = http.Get("http://" + gateway + "?abc=123")
 
