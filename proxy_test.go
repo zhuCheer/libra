@@ -66,6 +66,11 @@ func TestReverseProxySrv(t *testing.T) {
 	}))
 	defer notfoundHttpServer.Close()
 
+	notStartHttpServer := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "testing ReverseProxySrv Not Start")
+	}))
+	defer notfoundHttpServer.Close()
+
 	gateway := "127.0.0.1:5012"
 	proxy := NewHttpProxySrv(gateway, nil)
 	proxy.ResetCustomHeader(map[string]string{"httptest": "01023"})
@@ -119,6 +124,16 @@ func TestReverseProxySrv(t *testing.T) {
 
 	if res.StatusCode != 404 {
 		t.Error("ReverseProxySrv have an error(NotFound) #6")
+	}
+
+	// testing 502 server not start
+	notStartUrl, _ := url.Parse(notStartHttpServer.URL)
+	proxy.DelAddr(gateway, notfoundUrl.Host)
+	proxy.AddAddr(gateway, notStartUrl.Host, 1)
+	res, _ = http.Get("http://" + gateway)
+
+	if res.StatusCode != 502 {
+		t.Error("ReverseProxySrv have an error(Not Start) #7")
 	}
 }
 
