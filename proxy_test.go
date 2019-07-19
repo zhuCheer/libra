@@ -22,8 +22,6 @@ func TestProxyStart(t *testing.T) {
 		}()
 		proxy.Start()
 	}()
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestProxySrvFun(t *testing.T) {
@@ -112,8 +110,6 @@ func TestReverseProxySrv(t *testing.T) {
 	if string(greeting) != "testing ReverseProxySrv" {
 		t.Error("ReverseProxySrv have an error #5")
 	}
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestReverseProxySrvUnStart(t *testing.T) {
@@ -130,8 +126,7 @@ func TestReverseProxySrvUnStart(t *testing.T) {
 
 	targetHttpUrl, _ := url.Parse(targetHttpServer.URL)
 
-	siteInfo, _ := proxy.GetSiteInfo(gateway)
-	siteInfo.Balancer.AddAddr(targetHttpUrl.Host, 0)
+	proxy.AddAddr(gateway, targetHttpUrl.Host, 0)
 	res, _ := http.Get("http://" + gateway)
 
 	if res.StatusCode != 502 {
