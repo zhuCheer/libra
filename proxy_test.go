@@ -15,6 +15,19 @@ func TestSetLoggerLevel(t *testing.T) {
 	proxy.SetLoggerLevel("info")
 }
 
+func TestFlushProxy(t *testing.T) {
+	domain := "www.google.com"
+	proxy := NewHttpProxySrv("127.0.0.1:5000", nil)
+	proxy.RegistSite(domain, "roundrobin", "http")
+
+	info, _ := proxy.GetSiteInfo(domain)
+	proxy.FlushProxy(domain)
+	info2, _ := proxy.GetSiteInfo(domain)
+	if info == nil || info2 != nil {
+		t.Error("FlushProxy have an error #0")
+	}
+}
+
 func TestProxyStart(t *testing.T) {
 	proxy := NewHttpProxySrv("127.0.0.1:5000", nil)
 	go func() {

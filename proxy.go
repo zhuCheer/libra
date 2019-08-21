@@ -91,6 +91,11 @@ func (p *ProxySrv) DelAddr(domain string, addr string) {
 	}
 }
 
+// Flush Flush proxy by domain
+func (p *ProxySrv) FlushProxy(domain string) {
+	balancer.FlushProxy(domain)
+}
+
 // ChangeLoadType change balancer loadType
 func (p *ProxySrv) ChangeLoadType(domain, loadType string) {
 	balancer.ChangeLoadType(domain, loadType)
