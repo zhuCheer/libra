@@ -42,10 +42,15 @@ func NewHttpProxySrv(addr string, header map[string]string) *ProxySrv {
 }
 
 // Start http proxy server
+func (p *ProxySrv) SetLoggerLevel(level string) {
+	Logger.SetLevel(level)
+}
+
+// Start http proxy server
 func (p *ProxySrv) Start() error {
 
 	proxyHttpMux := http.NewServeMux()
-	Logger.Printf("start proxy server bind " + p.ProxyAddr)
+	Logger.Info("start proxy server bind " + p.ProxyAddr)
 	proxyHttpMux.Handle("/", p.httpMiddleware(p.dynamicReverseProxy()))
 
 	proxyServer := &http.Server{
@@ -159,7 +164,7 @@ func (p *ProxySrv) dynamicDirector(req *http.Request) {
 		req.URL.Scheme = siteInfo.Scheme
 	}
 
-	Logger.Printf("proxy to " + req.URL.String())
+	Logger.Info("proxy to " + req.URL.String())
 }
 
 // get ReverseProxy Http Handler

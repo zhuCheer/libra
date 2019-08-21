@@ -10,6 +10,11 @@ import (
 	"testing"
 )
 
+func TestSetLoggerLevel(t *testing.T) {
+	proxy := NewHttpProxySrv("127.0.0.1:5000", nil)
+	proxy.SetLoggerLevel("info")
+}
+
 func TestProxyStart(t *testing.T) {
 	proxy := NewHttpProxySrv("127.0.0.1:5000", nil)
 	go func() {
@@ -124,6 +129,11 @@ func TestReverseProxySrv(t *testing.T) {
 	if string(greeting) != "testing ReverseProxySrv" {
 		t.Error("ReverseProxySrv have an error #6")
 	}
+
+	proxy.DelAddr(gateway, targetHttpUrl.Host)
+	proxy.AddAddr(gateway, "", 1)
+	info, _ := proxy.GetSiteInfo(gateway)
+	fmt.Println(info, "=====")
 
 	// testing 404 not found
 	notfoundUrl, _ := url.Parse(notfoundHttpServer.URL)
