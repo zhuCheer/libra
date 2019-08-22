@@ -31,16 +31,16 @@ var registryMap map[string]*RegistNode
 
 // OriginItem struct addr and weight
 type OriginItem struct {
-	Endpoint string // ip:port
-	Weight   uint32
+	Endpoint string `json:"endpoint"` // ip:port
+	Weight   uint32 `json:"weight"`
 }
 
 // RegistNode register a proxy node struct
 type RegistNode struct {
-	Domain   string
-	Items    []OriginItem
-	Balancer Balancer
-	Scheme   string
+	Domain   string       `json:"domain"`
+	Items    []OriginItem `json:"items"`
+	Balancer Balancer     `json:"balancer,omitempty"`
+	Scheme   string       `json:"scheme"`
 }
 
 // ProxyTarget proxy target node struct
