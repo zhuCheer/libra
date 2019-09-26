@@ -132,6 +132,13 @@ func TestGetGCDWeight(t *testing.T) {
 	if err == nil {
 		t.Error("getGCDWeight func have an error #1")
 	}
+	items = []OriginItem{
+		{"127.0.0.1:8081", 0},
+	}
+	gcdWeight, _ := getGCDWeight(items)
+	if gcdWeight != 1 {
+		t.Error("getGCDWeight func have an error #1.1")
+	}
 
 	items = []OriginItem{
 		{"192.168.137.100", 80},
@@ -139,7 +146,7 @@ func TestGetGCDWeight(t *testing.T) {
 		{"192.168.137.100", 40},
 		{"192.168.137.100", 20},
 	}
-	gcdWeight, _ := getGCDWeight(items)
+	gcdWeight, _ = getGCDWeight(items)
 	if gcdWeight != 10 {
 		t.Error("getGCDWeight func have an error #2")
 	}

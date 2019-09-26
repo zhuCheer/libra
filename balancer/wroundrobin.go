@@ -109,7 +109,6 @@ func (r *WRoundRobinLoad) reloadActiveItems() error {
 	for _, item := range target.Items {
 		originItems = append(originItems, item)
 	}
-
 	gcdWeight, err := getGCDWeight(originItems)
 	if err != nil {
 		return err
@@ -149,7 +148,15 @@ func getGCDWeight(items []OriginItem) (uint32, error) {
 	if len(items) == 0 {
 		return 0, errors.New("origin items is empty")
 	}
+	for k, val := range items {
+		if val.Weight == 0 {
+			items[k].Weight = 1
+		}
+	}
 
+	if len(items) < 2 {
+		return items[0].Weight, nil
+	}
 	var gcdWeight uint32
 	for i := 1; i < len(items); i++ {
 		if i == 1 {
